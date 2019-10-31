@@ -11,6 +11,20 @@ void strcp(char *a,char *b){
 	}
 }
 
+int strcm(char *a,char *b){
+	while(*b!=0){
+		if(*a!=*b){
+			return *a>*b?1:-1;
+		}
+		a++;
+		b++;
+	}
+	if(*a!=0){
+		return -1;
+	}
+	return 0;
+}
+
 treeNode* newNode(int type,int val){
 	treeNode* node;
 	node=malloc(sizeof(treeNode));

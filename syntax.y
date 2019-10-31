@@ -66,6 +66,13 @@ ExtDef : Specifier ExtDecList SEMI {
 		insertNode(node,$3);
 		$$=node;
 		}
+		| Specifier FunDec SEMI{
+		treeNode* node=newNode(ExtDef,$1->val);
+		insertNode(node,$1);
+		insertNode(node,$2);
+		insertNode(node,$3);
+		$$=node;	
+		}
 
 ExtDecList : VarDec{
 		treeNode* node=newNode(ExtDecList,$1->val);
