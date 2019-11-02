@@ -1,9 +1,28 @@
 #include<stdio.h>
 #include "grammerTree.h"
 #include "syntax.tab.h"
+#include "semantics.h"
 
 extern treeNode* root;
 extern int globalErrorFlag;
+
+int main(int argc,char **argv){
+	globalErrorFlag=0;
+	//load file
+	if(argc>=2){
+		FILE *f;
+		f=fopen(argv[1],"r");
+		//parse
+		yyrestart(f);
+	}
+	yyparse();
+
+	//generate symboltable
+	if(globalErrorFlag==0){
+		travelNode(root,loadSymbol,0);
+	}
+	return 0;
+}
 
 void NonTerminalOutput(treeNode *node){
 	if(node->type<=20){
@@ -131,21 +150,4 @@ void printInfo(treeNode *node,int depth){
 	printf("\n");
 }
 
-int main(int argc,char **argv){
-	globalErrorFlag=0;
-	if(argc<2){
-		yyparse();
-		if(globalErrorFlag==0){
-			travelNode(root,printInfo,0);
-		}
-		return 0;
-	}
-	FILE *f;
-	f=fopen(argv[1],"r");
-	yyrestart(f);
-	yyparse();
-	if(globalErrorFlag==0){
-		travelNode(root,printInfo,0);
-	}
-	return 0;
-}
+

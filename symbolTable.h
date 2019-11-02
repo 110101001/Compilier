@@ -9,6 +9,7 @@
 typedef struct {
 	char *name;
 	int type;
+	int arrayLen;//0=not array
 } varibleItem;
 
 typedef struct {
@@ -20,14 +21,31 @@ typedef struct {
 	int returnType;
 } functionItem;
 
+typedef struct{
+	char *name;
+	int length;
+	varibleItem **field;
+} structItem;
+
+typedef struct structNode{
+	structItem *item;
+	struct structNode* next;
+}structNode;
+
+
 unsigned int hash_pjw(char *name);
 
-void varibleInsert(treeNode *node);
+void varibleInsert(treeNode *node,int type);
 
 void functionInsert(treeNode *node);
+
+int structInsert(treeNode *node);
 
 varibleItem *varibleSearch(char *name);
 
 functionItem *functionSearch(char *name);
 
+int structSearch(char *name);
+
+structItem *structGet(int type);
 #endif

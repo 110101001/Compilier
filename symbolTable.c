@@ -1,21 +1,32 @@
 #include"symbolTable.h"
+#include"semantics.h"
 #include"syntax.tab.h"
 #include<malloc.h>
 
 varibleItem *varTable[TABLE_LEN];
 functionItem *funcTable[TABLE_LEN];
+structNode *structHead;
 
 varibleItem *paraList[PARA_LEN];
 int paraCount;
 
+
 void loadParameters(treeNode *node,int depth){
-	if(node->type==INT||node->type==FLOAT){
-		varibleItem *newItem=malloc(sizeof(varibleItem));
-		newItem->type=node->type;
-		paraList[paraCount]=newItem;
+	static int type;
+	if(node->type==Specifier){
+		type=specifierRead(node);
 	}
-	else if(node->type==ID){
-		paraList[paraCount++]->name=node->text;
+	else if(node->type==VarDec){
+		paraList[paraCount]=malloc(sizeof(varibleItem));
+		paraList[paraCount]->type=type;
+		paraList[paraCount]->name=CHILD1(node)->text;
+		if(CHILD2(node)!=0){
+			paraList[paraCount]->arrayLen=CHILD3(node)->val;
+		}
+		else{
+			paraList[paraCount]->arrayLen=0;
+		}
+		paraCount++;
 	}
 }
 
@@ -24,14 +35,44 @@ unsigned int hash_pjw(char *name){
 	for(;*name;name++){
 		val=(val<<2)+*name;
 		if(i=val&(TABLE_LEN-1)){
-			val=(val^(i>>12)&(TABLE_LEN-1));
+			val=(val^(i>>12))&(TABLE_LEN-1);
 		}
 	}
 	return val;
 }
 
-void varibleInsert(treeNode *node){
-	unsigned int pos=hash_pjw(node->text);
+int structInsert(treeNode* node){
+	int type=2;
+	structNode *p=structHead;
+	if(structHead==0){
+		structHead=malloc(sizeof(structNode));
+		p=structHead;
+	}
+	else{
+		while(p->next!=0){
+			p=p->next;
+			type++;
+		}
+		p->next=malloc(sizeof(structNode));
+		p=p->next;
+	}
+
+	p->next=0;
+	p->item=malloc(sizeof(structItem));
+	p->item->name=CHILD1(CHILD2(node))->text;
+
+	paraCount=0;
+	travelNode(CHILD4(node),loadParameters,0);
+
+	p->item->field=malloc(paraCount*sizeof(varibleItem*));
+	for(int i=0;i<paraCount;i++){
+		p->item->field[i]=paraList[i];
+	}
+	return type;
+}
+
+void varibleInsert(treeNode *node,int type){
+	unsigned int pos=hash_pjw(CHILD1(node)->text);
 	while(varTable[pos]!=0){
 		pos++;
 		pos%=TABLE_LEN;
@@ -39,21 +80,27 @@ void varibleInsert(treeNode *node){
 
 	varTable[pos]=malloc(sizeof(varibleItem));
 
-	varTable[pos]->name=node->text;
-	varTable[pos]->type=node->type;
+	varTable[pos]->name=CHILD1(node)->text;
+	varTable[pos]->type=type;
+	if(CHILD2(node)!=0){
+		varTable[pos]->arrayLen=CHILD3(node)->val;
+	}
+	else{
+		varTable[pos]->arrayLen=0;
+	}
 	return;
 }
 
 void functionInsert(treeNode *node){
-	unsigned int pos=hash_pjw(node->text);
+	unsigned int pos=hash_pjw(CHILD1(CHILD2(node))->text);
 	while(funcTable[pos]!=0){
 		pos++;
 		pos%=TABLE_LEN;
 	}
 
-	funcTable[pos]=malloc(sizeof(varibleItem));
+	funcTable[pos]=malloc(sizeof(functionItem));
 
-	funcTable[pos]->name=node->text;
+	funcTable[pos]->name=CHILD1(CHILD2(node))->text;
 	if(CHILD3(node)->type==SEMI){
 		funcTable[pos]->implemented=0;
 	}
@@ -62,14 +109,38 @@ void functionInsert(treeNode *node){
 	}
 
 	paraCount=0;
-	travelNode(CHILD3(CHILD2(node)),loadParameters,0);
-	funcTable[pos]->parameters=malloc(paraCount*sizeof(varibleItem*));
-	for(int i=0;i<paraCount;i++){
-		funcTable[pos]->parameters[i]=paraList[i];
+	if(CHILD3(CHILD2(node))->type==VarList){
+		travelNode(CHILD3(CHILD2(node)),loadParameters,0);
+		funcTable[pos]->parameters=malloc(paraCount*sizeof(varibleItem*));
+		for(int i=0;i<paraCount;i++){
+			funcTable[pos]->parameters[i]=paraList[i];
+		}
 	}
-
-	funcTable[pos]->returnType=CHILD1(CHILD1(node))->type;
+	else{
+		funcTable[pos]->parameters=0;
+	}
+	funcTable[pos]->returnType=specifierRead((CHILD1(node)));
 	return;
+}
+int structSearch(char *name){
+	int type=2;
+	structNode *p=structHead;
+	while(p!=0){
+		if(strcm(p->item->name,name)==0){
+			return type;
+		}
+		type++;
+		p=p->next;
+	}
+	return 0;
+}
+
+structItem *structGet(int type){
+	structNode *p=structHead;
+	for(int i=0;i<type-2;i++){
+		p=p->next;
+	}
+	return p->item;
 }
 
 varibleItem *varibleSearch(char *name){

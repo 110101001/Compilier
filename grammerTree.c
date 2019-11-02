@@ -25,7 +25,7 @@ int strcm(char *a,char *b){
 	return 0;
 }
 
-treeNode* newNode(int type,int val){
+treeNode* newNode(int type,int val,int genCount){
 	treeNode* node;
 	node=malloc(sizeof(treeNode));
 	node->type=type;
@@ -33,10 +33,11 @@ treeNode* newNode(int type,int val){
 	node->children=0;
 	node->next=0;
 	node->parentNode=0;
+	node->genCount=genCount;
 	return node; 
 }
 
-treeNode* newFloatNode(int type,float val){
+treeNode* newFloatNode(int type,float val,int genCount){
 	treeNode* node;
 	node=malloc(sizeof(treeNode));
 	node->type=type;
@@ -44,6 +45,7 @@ treeNode* newFloatNode(int type,float val){
 	node->children=0;
 	node->next=0;
 	node->parentNode=0;
+	node->genCount=genCount;
 	return node; 
 }
 
@@ -51,12 +53,13 @@ void insertNode(treeNode* pnode,treeNode* cnode){
 	treeNode *p=pnode->children;
 	if(p==0){
 		pnode->children=cnode;
-		return;
 	}
-	while(p->next!=0){
-		p=p->next;
+	else{
+		while(p->next!=0){
+			p=p->next;
+		}
+		p->next=cnode;
 	}
-	p->next=cnode;
 	if(cnode!=0){
 		cnode->parentNode=pnode;
 	}

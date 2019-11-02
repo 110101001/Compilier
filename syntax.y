@@ -16,7 +16,6 @@ void yyerror(char *msg){
 	lastErrorPos=yylineno;
 }
 
-enum{Program, ExtDefList, ExtDef,ExtDecList,Specifier,StructSpecifier,OptTag,Tag,VarDec,FunDec,VarList,ParamDec,CompSt,StmtList,Stmt,DefList,Def,DecList,Dec,Exp,Args};
 
 extern treeNode* root;
 %}
@@ -30,14 +29,14 @@ extern treeNode* root;
 
 %%
 Program : ExtDefList {
-		treeNode* node=newNode(Program,$1->val);
+		treeNode* node=newNode(Program,$1->val,1);
 		insertNode(node,$1);
 		$$=node;
 		root=node;
 		}
 
 ExtDefList : ExtDef ExtDefList{
-		treeNode* node=newNode(ExtDefList,$1->val);
+		treeNode* node=newNode(ExtDefList,$1->val,1);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		$$=node;
@@ -47,27 +46,27 @@ ExtDefList : ExtDef ExtDefList{
 		   }
 
 ExtDef : Specifier ExtDecList SEMI {
-		treeNode* node=newNode(ExtDef,$1->val);
+		treeNode* node=newNode(ExtDef,$1->val,1);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	   | Specifier SEMI {
-		treeNode* node=newNode(ExtDef,$1->val);
+		treeNode* node=newNode(ExtDef,$1->val,2);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		$$=node;
 		}
 	   | Specifier FunDec CompSt{
-		treeNode* node=newNode(ExtDef,$1->val);
+		treeNode* node=newNode(ExtDef,$1->val,3);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 		| Specifier FunDec SEMI{
-		treeNode* node=newNode(ExtDef,$1->val);
+		treeNode* node=newNode(ExtDef,$1->val,4);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -75,12 +74,12 @@ ExtDef : Specifier ExtDecList SEMI {
 		}
 
 ExtDecList : VarDec{
-		treeNode* node=newNode(ExtDecList,$1->val);
+		treeNode* node=newNode(ExtDecList,$1->val,1);
 		insertNode(node,$1);
 		$$=node;
 		}
-		   | VarDec COMMA ExtDecList{
-		treeNode* node=newNode(ExtDecList,$1->val);
+		| VarDec COMMA ExtDecList{
+		treeNode* node=newNode(ExtDecList,$1->val,2);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -88,18 +87,18 @@ ExtDecList : VarDec{
 		}
 
 Specifier : TYPE{
-		treeNode* node=newNode(Specifier,$1->val);
+		treeNode* node=newNode(Specifier,$1->val,1);
 		insertNode(node,$1);
 		$$=node;
 		}
-		  | StructSpecifier{
-		treeNode* node=newNode(Specifier,$1->val);
+		| StructSpecifier{
+		treeNode* node=newNode(Specifier,$1->val,2);
 		insertNode(node,$1);
 		$$=node;
 		}
 
 StructSpecifier : STRUCT OptTag LC DefList RC{
-		treeNode* node=newNode(StructSpecifier,$1->val);
+		treeNode* node=newNode(StructSpecifier,$1->val,1);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -107,15 +106,15 @@ StructSpecifier : STRUCT OptTag LC DefList RC{
 		insertNode(node,$5);
 		$$=node;
 		}
-				| STRUCT Tag{
-		treeNode* node=newNode(StructSpecifier,$1->val);
+		| STRUCT Tag{
+		treeNode* node=newNode(StructSpecifier,$1->val,2);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		$$=node;
 		}
 
 OptTag : ID{
-		treeNode* node=newNode(OptTag,$1->val);
+		treeNode* node=newNode(OptTag,$1->val,1);
 		insertNode(node,$1);
 		$$=node;
 		}
@@ -124,18 +123,18 @@ OptTag : ID{
 		}
 
 Tag : ID{
-		treeNode* node=newNode(Tag,$1->val);
+		treeNode* node=newNode(Tag,$1->val,1);
 		insertNode(node,$1);
 		$$=node;
 		}
 
 VarDec : ID{
-		treeNode* node=newNode(VarDec,$1->val);
+		treeNode* node=newNode(VarDec,$1->val,1);
 		insertNode(node,$1);
 		$$=node;
 		}
 	   | VarDec LB INT RB{
-		treeNode* node=newNode(VarDec,$1->val);
+		treeNode* node=newNode(VarDec,$1->val,2);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -144,7 +143,7 @@ VarDec : ID{
 		}
 
 FunDec : ID LP VarList RP {
-		treeNode* node=newNode(FunDec,$1->val);
+		treeNode* node=newNode(FunDec,$1->val,1);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -152,7 +151,7 @@ FunDec : ID LP VarList RP {
 		$$=node;
 		}
 	   | ID LP RP{
-		treeNode* node=newNode(FunDec,$1->val);
+		treeNode* node=newNode(FunDec,$1->val,2);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -160,27 +159,27 @@ FunDec : ID LP VarList RP {
 		} 
 
 VarList : ParamDec COMMA VarList{
-		treeNode* node=newNode(VarList,$1->val);
+		treeNode* node=newNode(VarList,$1->val,1);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 		| ParamDec{
-		treeNode* node=newNode(VarList,$1->val);
+		treeNode* node=newNode(VarList,$1->val,2);
 		insertNode(node,$1);
 		$$=node;
 		}
 
 ParamDec : Specifier VarDec{
-		treeNode* node=newNode(ParamDec,$1->val);
+		treeNode* node=newNode(ParamDec,$1->val,1);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		$$=node;
 		}
 
 CompSt : LC DefList StmtList RC{
-		treeNode* node=newNode(CompSt,$1->val);
+		treeNode* node=newNode(CompSt,$1->val,2);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -190,7 +189,7 @@ CompSt : LC DefList StmtList RC{
 	   | error RC
 
 StmtList : Stmt StmtList{
-		treeNode* node=newNode(StmtList,$1->val);
+		treeNode* node=newNode(StmtList,$1->val,1);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		$$=node;
@@ -200,25 +199,25 @@ StmtList : Stmt StmtList{
 }
 
 Stmt : Exp SEMI{
-		treeNode* node=newNode(Stmt,$1->val);
+		treeNode* node=newNode(Stmt,$1->val,1);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		$$=node;
 		}
 	 | CompSt{
-		treeNode* node=newNode(Stmt,$1->val);
+		treeNode* node=newNode(Stmt,$1->val,2);
 		insertNode(node,$1);
 		$$=node;
 		}
 	 | RETURN Exp SEMI {
-		treeNode* node=newNode(Stmt,$1->val);
+		treeNode* node=newNode(Stmt,$1->val,3);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	 | IF LP Exp RP Stmt{
-		treeNode* node=newNode(Stmt,$1->val);
+		treeNode* node=newNode(Stmt,$1->val,4);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -227,7 +226,7 @@ Stmt : Exp SEMI{
 		$$=node;
 		}
 	 | IF LP Exp RP Stmt ELSE Stmt{
-		treeNode* node=newNode(Stmt,$1->val);
+		treeNode* node=newNode(Stmt,$1->val,5);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -237,7 +236,7 @@ Stmt : Exp SEMI{
 		$$=node;
 		}
 	 | WHILE LP Exp RP Stmt{
-		treeNode* node=newNode(Stmt,$1->val);
+		treeNode* node=newNode(Stmt,$1->val,6);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -248,7 +247,7 @@ Stmt : Exp SEMI{
 	 | error SEMI
 
 DefList : Def DefList{
-		treeNode* node=newNode(DefList,$1->val);
+		treeNode* node=newNode(DefList,$1->val,1);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		$$=node;
@@ -258,7 +257,7 @@ DefList : Def DefList{
 		}
 
 Def : Specifier DecList SEMI{
-		treeNode* node=newNode(Def,$1->val);
+		treeNode* node=newNode(Def,$1->val,1);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -266,12 +265,12 @@ Def : Specifier DecList SEMI{
 		}
 
 DecList : Dec{
-		treeNode* node=newNode(DecList,$1->val);
+		treeNode* node=newNode(DecList,$1->val,1);
 		insertNode(node,$1);
 		$$=node;
 		}
 		| Dec COMMA DecList{
-		treeNode* node=newNode(DecList,$1->val);
+		treeNode* node=newNode(DecList,$1->val,2);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -280,12 +279,12 @@ DecList : Dec{
 		| error COMMA DecList
 
 Dec : VarDec{
-		treeNode* node=newNode(Dec,$1->val);
+		treeNode* node=newNode(Dec,$1->val,1);
 		insertNode(node,$1);
 		$$=node;
 		}
 	| VarDec ASSIGNOP Exp{
-		treeNode* node=newNode(Dec,$1->val);
+		treeNode* node=newNode(Dec,$1->val,2);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -293,82 +292,82 @@ Dec : VarDec{
 		}
 
 Exp : Exp ASSIGNOP Exp{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,1);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	| Exp AND Exp{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,2);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	| Exp OR Exp{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,3);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	| Exp RELOP Exp{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,4);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	| Exp PLUS Exp{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,5);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	| Exp MINUS Exp{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,6);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	| Exp STAR Exp{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,7);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	| Exp DIV Exp{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,8);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	| LP Exp RP{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,9);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	| MINUS Exp{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,10);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		$$=node;
 		}
 	| NOT Exp{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,11);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		$$=node;
 		}
 	| ID LP Args RP{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,12);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -376,14 +375,14 @@ Exp : Exp ASSIGNOP Exp{
 		$$=node;
 		}
 	| ID LP RP{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,13);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	| Exp LB Exp RB{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,14);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
@@ -391,37 +390,37 @@ Exp : Exp ASSIGNOP Exp{
 		$$=node;
 		}
 	| Exp DOT ID{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,15);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	| ID{
-		treeNode* node=newNode(Exp,$1->val);
+		treeNode* node=newNode(Exp,$1->val,16);
 		insertNode(node,$1);
 		$$=node;
 		}
 	| INT{
-		treeNode* node=newNode(Exp,yylineno);
+		treeNode* node=newNode(Exp,yylineno,17);
 		insertNode(node,$1);
 		$$=node;
 		}
 	| FLOAT{
-		treeNode* node=newNode(Exp,yylineno);
+		treeNode* node=newNode(Exp,yylineno,18);
 		insertNode(node,$1);
 		$$=node;
 		}
 
 Args : Exp COMMA Args{
-		treeNode* node=newNode(Args,$1->val);
+		treeNode* node=newNode(Args,$1->val,1);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
 		$$=node;
 		}
 	 | Exp{
-		treeNode* node=newNode(Args,$1->val);
+		treeNode* node=newNode(Args,$1->val,2);
 		insertNode(node,$1);
 		$$=node;
 		}

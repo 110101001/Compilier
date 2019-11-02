@@ -6,6 +6,10 @@
 #define CHILD3(node) ((node)->children->next->next)
 #define CHILD4(node) ((node)->children->next->next->next)
 
+enum symbols{Program, ExtDefList, ExtDef,ExtDecList,Specifier,StructSpecifier,OptTag,Tag,VarDec,FunDec,VarList,ParamDec,CompSt,StmtList,Stmt,DefList,Def,DecList,Dec,Exp,Args};
+
+enum{_int,_float};
+
 typedef struct treeNode{
 	int type;
 	union{
@@ -13,6 +17,7 @@ typedef struct treeNode{
 		float fval;
 	};
 	char *text;
+	int genCount;
 	struct treeNode *parentNode;
 	struct treeNode* children;
 	struct treeNode* next;
@@ -23,8 +28,8 @@ typedef struct treeNode{
 void strcp(char *a,char *b);
 int strcm(char *a,char *b);
 
-treeNode* newNode(int type,int val);
-treeNode* newFloatNode(int type,float val);
+treeNode* newNode(int type,int val,int genCount);
+treeNode* newFloatNode(int type,float val,int genCount);
 void insertNode(treeNode* pnode,treeNode* cnode);
 void deleteNode(treeNode* node);
 void travelNode(treeNode* root,void (*action)(treeNode*,int),int depth);
