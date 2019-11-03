@@ -9,7 +9,8 @@
 typedef struct {
 	char *name;
 	int type;
-	int arrayLen;//0=not array
+	int arrayDim;
+	int *arrayLen;
 } varibleItem;
 
 typedef struct {
@@ -32,6 +33,7 @@ typedef struct structNode{
 	struct structNode* next;
 }structNode;
 
+varibleItem *searchField(structItem *item,char *name);
 
 unsigned int hash_pjw(char *name);
 
@@ -44,6 +46,8 @@ int structInsert(treeNode *node);
 varibleItem *varibleSearch(char *name);
 
 functionItem *functionSearch(char *name);
+
+functionItem *functionCreate(treeNode *node);
 
 int structSearch(char *name);
 

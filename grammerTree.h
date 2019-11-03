@@ -18,6 +18,8 @@ typedef struct treeNode{
 	};
 	char *text;
 	int genCount;
+	int ExpType;
+	int ExpDim;
 	struct treeNode *parentNode;
 	struct treeNode* children;
 	struct treeNode* next;

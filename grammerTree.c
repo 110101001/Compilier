@@ -34,6 +34,8 @@ treeNode* newNode(int type,int val,int genCount){
 	node->next=0;
 	node->parentNode=0;
 	node->genCount=genCount;
+	node->ExpType=-1;
+	node->ExpDim=0;
 	return node; 
 }
 
@@ -46,6 +48,8 @@ treeNode* newFloatNode(int type,float val,int genCount){
 	node->next=0;
 	node->parentNode=0;
 	node->genCount=genCount;
+	node->ExpType=-1;
+	node->ExpDim=0;
 	return node; 
 }
 
@@ -67,11 +71,11 @@ void insertNode(treeNode* pnode,treeNode* cnode){
 }
 //void deleteNode(treeNode* node);
 void travelNode(treeNode* root,void (*action)(treeNode*,int),int depth){
-	action(root,depth);
 	treeNode *p=root->children;
 	while(p!=0){
 		travelNode(p,action,depth+1);
 		p=p->next;
 	}
+	action(root,depth);
 	return;
 }

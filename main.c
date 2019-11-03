@@ -6,6 +6,8 @@
 extern treeNode* root;
 extern int globalErrorFlag;
 
+void printInfo(treeNode *node,int depth);
+
 int main(int argc,char **argv){
 	globalErrorFlag=0;
 	//load file
