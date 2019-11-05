@@ -57,6 +57,12 @@ void DecListHandler(treeNode *node,int depth){
 			errorHandler(3,node->val);
 			return;
 		}
+		if(node->next!=0){
+			if(node->next->next->ExpType!=specifierType){
+				errorHandler(5,node->val);
+				return;
+			}
+		}
 		varibleInsert(node,specifierType);
 	}	
 }
@@ -108,175 +114,206 @@ void loadSymbol(treeNode *node,int depth){
 					   }
 			}
 			break;
+		case ParamDec:{
+						  treeNode *func=node;
+						  while(func->type!=FunDec){
+							  func=func->parentNode;
+						  }
+						  if(functionSearch(CHILD1(func)->text)!=0){
+							  break;
+						  }
+					  }
+					  //don't break if the func is not loaded, act like def.
 		case Def:
-			specifierType=specifierRead(CHILD1(node));
-			travelNode(CHILD2(node),DecListHandler,0);
-			break;
+					  specifierType=specifierRead(CHILD1(node));
+					  travelNode(CHILD2(node),DecListHandler,0);
+					  break;
 		case  Exp:
-			switch(node->genCount){
-				case 1:
-					if(checkExpError(CHILD1(node))||checkExpError(CHILD3(node))){
-						return;
-					}
-					switch(CHILD1(node)->genCount){
-						case 14:
-						case 15:
-						case 16:
-							break;
-						default:
-							errorHandler(6,node->val);
-							return;
-							break;
-					}
-					if(CHILD1(node)->ExpType!=CHILD3(node)->ExpType||
-							CHILD1(node)->ExpDim!=0||CHILD3(node)->ExpDim!=0){
-						errorHandler(5,node->val);
-					}
-					node->ExpType=CHILD1(node)->ExpType;
-					break;
-				case 2:
-				case 3:
-					if(checkExpError(CHILD1(node))||checkExpError(CHILD3(node))){
-						return;
-					}
-					if(CHILD1(node)->ExpType!=_int||
-							CHILD3(node)->ExpType!=_int||
-							CHILD1(node)->ExpDim!=0||
-							CHILD3(node)->ExpDim!=0){
-						errorHandler(7,node->val);
-						return;
-					}
-					node->ExpType=_int;
-					break;
-				case 4:
-				case 5:
-				case 6:
-				case 7:
-				case 8:
-					if(checkExpError(CHILD1(node))||checkExpError(CHILD3(node))){
-						return;
-					}
-					if(!((CHILD1(node)->ExpType==_int||CHILD1(node)->ExpType==_float)&&
-								CHILD1(node)->ExpType==CHILD3(node)->ExpType)||
-							CHILD1(node)->ExpDim!=0||CHILD3(node)->ExpDim!=0){
-						errorHandler(7,node->val);
-						return;
-					}
-					node->ExpType=CHILD1(node)->ExpType;
-					break;
-				case 9:
-					if(checkExpError(CHILD2(node))){
-						return;
-					}
-					node->ExpType=CHILD2(node)->ExpType;
-					break;
-				case 10:
-					if(checkExpError(CHILD2(node))){
-						return;
-					}
-					if(!(CHILD2(node)->ExpType!=_int&&CHILD2(node)->ExpType!=_float)){
-						errorHandler(7,node->val);
-					}
-					node->ExpType=CHILD2(node)->ExpType;
-					break;
-				case 11:
-					if(checkExpError(CHILD2(node))){
-						return;
-					}
-					if(!CHILD2(node)->ExpType!=_int){
-						errorHandler(7,node->val);
-					}
-					node->ExpType=_int;
-					break;
-				case 12:{
-							functionItem *item=functionSearch(CHILD1(node)->text);
-							if(item==0){
-								errorHandler(2,CHILD1(node)->val);
-								return;
-							}
-							node->ExpType=item->returnType;
-							break;
-						}
-				case 13:{
-							functionItem *item=functionSearch(CHILD1(node)->text);
-							if(item==0){
-								errorHandler(2,CHILD1(node)->val);
-								return;
-							}
-							treeNode *args=node;
-							for(int i=0;i<item->length;i++){
-								if(CHILD2(node)==0){
-									errorHandler(9,args->val);
-									return;
-								}
-								args=CHILD3(args);
-								if(item->parameters[i]->type!=CHILD1(args)->ExpType){
-									errorHandler(9,args->val);
-									return;
-								}
-							}
-							node->ExpType=item->returnType;
-							break;
-						}
-				case 14:{
-							if(checkExpError(CHILD1(node))||checkExpError(CHILD3(node))){
-								return;
-							}
-							if(CHILD1(node)->ExpDim==0){
-								errorHandler(10,node->val);
-								return;
-							}
-							if(CHILD3(node)->ExpType!=_int){
-								errorHandler(12,node->val);
-								return;
-							}
-							node->ExpType=CHILD1(node)->ExpType;
-							node->ExpDim=CHILD1(node)->ExpDim-1;
-							break;
-						}
-				case 15:{
-							if(checkExpError(CHILD1(node))){
-								return;
-							}
-							if(CHILD1(node)->ExpType<2){
-								errorHandler(13,node->val);
-								return;
-							}
-							structItem *item=structGet(CHILD1(node)->ExpType);
-							varibleItem *vitem=searchField(item,CHILD3(node)->text);
-							if(vitem==0){
-								errorHandler(14,node->val);
-								return;
-							}
-							node->ExpType=vitem->type;
-							node->ExpDim=vitem->arrayDim;
-							break;
-						}
-				case 16:{//var
-							varibleItem *item=varibleSearch(CHILD1(node)->text);
-							if(item==0){
-								functionItem *fitem=functionSearch(CHILD1(node)->text);
-								if(fitem!=0){
-									errorHandler(11,node->val);
-									return;
-								}
-								errorHandler(1,node->val);
-								return;
-							}
-							node->ExpType=item->type;
-							node->ExpDim=item->arrayDim;
-							break;
-						}
-				case 17:
-						node->ExpType=_int;
-						node->ExpDim=0;
-						break;
-				case 18:
-						node->ExpType=_float;
-						node->ExpDim=0;
-						break;
-			}
-			break;
+					  switch(node->genCount){
+						  case 1:
+							  if(checkExpError(CHILD1(node))||checkExpError(CHILD3(node))){
+								  return;
+							  }
+							  switch(CHILD1(node)->genCount){
+								  case 14:
+								  case 15:
+								  case 16:
+									  break;
+								  default:
+									  errorHandler(6,node->val);
+									  return;
+									  break;
+							  }
+							  if(CHILD1(node)->ExpType!=CHILD3(node)->ExpType||
+									  CHILD1(node)->ExpDim!=0||CHILD3(node)->ExpDim!=0){
+								  errorHandler(5,node->val);
+							  }
+							  node->ExpType=CHILD1(node)->ExpType;
+							  break;
+						  case 2:
+						  case 3:
+							  if(checkExpError(CHILD1(node))||checkExpError(CHILD3(node))){
+								  return;
+							  }
+							  if(CHILD1(node)->ExpType!=_int||
+									  CHILD3(node)->ExpType!=_int||
+									  CHILD1(node)->ExpDim!=0||
+									  CHILD3(node)->ExpDim!=0){
+								  errorHandler(7,node->val);
+								  return;
+							  }
+							  node->ExpType=_int;
+							  break;
+						  case 4:
+						  case 5:
+						  case 6:
+						  case 7:
+						  case 8:
+							  if(checkExpError(CHILD1(node))||checkExpError(CHILD3(node))){
+								  return;
+							  }
+							  if(!((CHILD1(node)->ExpType==_int||CHILD1(node)->ExpType==_float)&&
+										  CHILD1(node)->ExpType==CHILD3(node)->ExpType)||
+									  CHILD1(node)->ExpDim!=0||CHILD3(node)->ExpDim!=0){
+								  errorHandler(7,node->val);
+								  return;
+							  }
+							  node->ExpType=CHILD1(node)->ExpType;
+							  break;
+						  case 9:
+							  if(checkExpError(CHILD2(node))){
+								  return;
+							  }
+							  node->ExpType=CHILD2(node)->ExpType;
+							  break;
+						  case 10:
+							  if(checkExpError(CHILD2(node))){
+								  return;
+							  }
+							  if(!(CHILD2(node)->ExpType!=_int&&CHILD2(node)->ExpType!=_float)){
+								  errorHandler(7,node->val);
+							  }
+							  node->ExpType=CHILD2(node)->ExpType;
+							  break;
+						  case 11:
+							  if(checkExpError(CHILD2(node))){
+								  return;
+							  }
+							  if(!CHILD2(node)->ExpType!=_int){
+								  errorHandler(7,node->val);
+							  }
+							  node->ExpType=_int;
+							  break;
+						  case 12:
+						  case 13:{
+									  functionItem *item=functionSearch(CHILD1(node)->text);
+									  if(item==0){
+										  errorHandler(2,CHILD1(node)->val);
+										  return;
+									  }
+									  if(item->length!=0){
+										  if(CHILD3(node)->type!=Args){
+											  errorHandler(9,node->val);
+											  return;
+										  }
+										  treeNode *args=node;
+										  for(int i=0;i<item->length;i++){
+											  if(CHILD2(args)==0){
+												  errorHandler(9,args->val);
+												  return;
+											  }
+											  args=CHILD3(args);
+											  if(item->parameters[i]->type!=CHILD1(args)->ExpType){
+												  errorHandler(9,args->val);
+												  return;
+											  }
+										  }
+									  }
+									  node->ExpType=item->returnType;
+									  break;
+								  }
+						  case 14:{
+									  if(checkExpError(CHILD1(node))||checkExpError(CHILD3(node))){
+										  return;
+									  }
+									  if(CHILD1(node)->ExpDim==0){
+										  errorHandler(10,node->val);
+										  return;
+									  }
+									  if(CHILD3(node)->ExpType!=_int){
+										  errorHandler(12,node->val);
+										  return;
+									  }
+									  node->ExpType=CHILD1(node)->ExpType;
+									  node->ExpDim=CHILD1(node)->ExpDim-1;
+									  break;
+								  }
+						  case 15:{
+									  if(checkExpError(CHILD1(node))){
+										  return;
+									  }
+									  if(CHILD1(node)->ExpType<2){
+										  errorHandler(13,node->val);
+										  return;
+									  }
+									  structItem *item=structGet(CHILD1(node)->ExpType);
+									  varibleItem *vitem=searchField(item,CHILD3(node)->text);
+									  if(vitem==0){
+										  errorHandler(14,node->val);
+										  return;
+									  }
+									  node->ExpType=vitem->type;
+									  node->ExpDim=vitem->arrayDim;
+									  break;
+								  }
+						  case 16:{//var
+									  varibleItem *item=varibleSearch(CHILD1(node)->text);
+									  if(item==0){
+										  functionItem *fitem=functionSearch(CHILD1(node)->text);
+										  if(fitem!=0){
+											  errorHandler(11,node->val);
+											  return;
+										  }
+										  errorHandler(1,node->val);
+										  return;
+									  }
+									  node->ExpType=item->type;
+									  node->ExpDim=item->arrayDim;
+									  break;
+								  }
+						  case 17:
+								  node->ExpType=_int;
+								  node->ExpDim=0;
+								  break;
+						  case 18:
+								  node->ExpType=_float;
+								  node->ExpDim=0;
+								  break;
+					  }
+					  break;
+		case Stmt:
+					  if(node->genCount==3){
+						  treeNode *func=node;
+						  while(func->type!=ExtDef){
+							  func=func->parentNode;
+						  }
+						  functionItem *item=functionSearch(CHILD1(CHILD2(func))->text);
+						  if(item!=0){
+							  if(item->returnType!=CHILD2(node)->ExpType){
+								  errorHandler(8,node->val);
+								  return;
+							  }
+						  }
+						  else{
+							  if(specifierRead(CHILD1(func))!=CHILD2(node)->ExpType){
+								  errorHandler(8,node->val);
+								  return;
+
+							  }
+						  }
+					  }
+					  break;
+
 	}
 	return;
 }

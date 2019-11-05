@@ -148,6 +148,7 @@ void functionInsert(treeNode *node){
 	else{
 		funcTable[pos]->parameters=0;
 	}
+	funcTable[pos]->length=paraCount;
 	funcTable[pos]->returnType=specifierRead((CHILD1(node)));
 	return;
 }
@@ -175,6 +176,7 @@ functionItem *functionCreate(treeNode *node){
 	else{
 		item->parameters=0;
 	}
+	item->length=paraCount;
 	item->returnType=specifierRead((CHILD1(node)));
 	return item;
 }
