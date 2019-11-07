@@ -119,7 +119,8 @@ OptTag : ID{
 		$$=node;
 		}
 	   | /*EMPTY*/{
-	   	$$=0;
+		treeNode* node=newNode(OptTag,0,2);
+	   	$$=node;
 		}
 
 Tag : ID{

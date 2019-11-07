@@ -9,29 +9,29 @@ structNode *structHead;
 
 varibleItem *paraList[PARA_LEN];
 int paraCount;
-
+int unimplementedFunctions=0;
 
 void loadParameters(treeNode *node,int depth){
 	static int type;
 	if(node->type==Specifier){
 		type=specifierRead(node);
 	}
-	else if(node->type==VarDec){
-		int arrayDim=0;
+	else if(node->type==VarDec&&CHILD1(node)->type!=VarDec){
+		int arrayDim=-1;
 		treeNode *dec=node;
-		while(CHILD2(dec)!=0){
-			dec=CHILD1(dec);
+		while(dec->type==VarDec){
+			dec=dec->parentNode;
 			arrayDim++;
 		}
 		paraList[paraCount]=malloc(sizeof(varibleItem));
 		paraList[paraCount]->type=type;
-		paraList[paraCount]->name=CHILD1(dec)->text;
+		paraList[paraCount]->name=CHILD1(node)->text;
 		paraList[paraCount]->arrayDim=arrayDim;
 		if(arrayDim!=0){
 			paraList[paraCount]->arrayLen=malloc(arrayDim*sizeof(int));
 			for(int i=0;i<arrayDim;i++){
-				dec=dec->parentNode;
-				paraList[paraCount]->arrayLen[i]=CHILD3(dec)->val;
+				node=node->parentNode;
+				paraList[paraCount]->arrayLen[i]=CHILD3(node)->val;
 			}
 		}
 		paraCount++;
@@ -66,6 +66,7 @@ int structInsert(treeNode* node){
 		p=structHead;
 	}
 	else{
+		type++;
 		while(p->next!=0){
 			p=p->next;
 			type++;
@@ -76,7 +77,6 @@ int structInsert(treeNode* node){
 
 	p->next=0;
 	p->item=malloc(sizeof(structItem));
-	p->item->name=CHILD1(CHILD2(node))->text;
 
 	paraCount=0;
 	travelNode(CHILD4(node),loadParameters,0);
@@ -85,6 +85,12 @@ int structInsert(treeNode* node){
 	p->item->field=malloc(paraCount*sizeof(varibleItem*));
 	for(int i=0;i<paraCount;i++){
 		p->item->field[i]=paraList[i];
+	}
+	if(CHILD2(node)->genCount==2){
+		p->item->name=0;
+	}
+	else{
+		p->item->name=CHILD1(CHILD2(node))->text;
 	}
 	return type;
 }
@@ -131,6 +137,7 @@ void functionInsert(treeNode *node){
 
 	funcTable[pos]->name=CHILD1(CHILD2(node))->text;
 	if(node->genCount==4){
+		unimplementedFunctions++;
 		funcTable[pos]->implemented=0;
 	}
 	else{

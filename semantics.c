@@ -5,7 +5,28 @@
 
 int specifierType;
 extern int globalErrorFlag;
-
+extern int unimplementedFunctions;
+const char ErrorMessage[19][100]={
+	"Using Undefined Varible",
+	"Using Undefined Function",
+	"Repeated Varible Defination",
+	"Repeated Function Defination",
+	"Unmatched Expression Type",
+	"Right Value Appears on the Left Side of Assign Operator",
+	"Illegal Expression Type of The operator",
+	"Return Type is Unmatched",
+	"Parameters are Unmatched",
+	"Accessing Non Array Varible as a Array",
+	"Calling Varible as a Function",
+	"Expression in Array Access Operator is not an Integar",
+	"Accessing Non Struct Varible as a Struct",
+	"Accessing Unexisted Field",
+	"Illegal Field",
+	"Repeated Struct Name",
+	"Using Undefined Struct",
+	"Function Not Implemented",
+	"Conflicted Function Declearation"
+};
 int checkExpError(treeNode *node){
 	if(node->ExpType==-1){
 		return 1;
@@ -16,7 +37,8 @@ int checkExpError(treeNode *node){
 }
 
 void errorHandler(int type,int line){
-	printf("Error type %d at Line %d :\n",type,line);
+	printf("Error type %d at Line %d : %s \n",type,line,ErrorMessage[type-1]);
+	globalErrorFlag=1;
 }
 
 int specifierRead(treeNode *node){
@@ -31,6 +53,9 @@ int specifierRead(treeNode *node){
 		}
 		else{
 			if(CHILD1(node)->genCount==1){
+				if(CHILD2(CHILD1(node))->genCount==2){
+					return structInsert(CHILD1(node));
+				}
 				if(varibleSearch(CHILD1(CHILD2(CHILD1(node)))->text)!=0){
 					errorHandler(16,node->val);
 				}
@@ -57,7 +82,14 @@ void DecListHandler(treeNode *node,int depth){
 			errorHandler(3,node->val);
 			return;
 		}
-		if(node->next!=0){
+		if(node->parentNode->type==Dec&&node->next!=0){
+			name=node;
+			while(name->type!=CompSt&&name->type!=StructSpecifier){
+				name=name->parentNode;
+			}
+			if(name->type==StructSpecifier){
+				errorHandler(15,node->val);
+			}
 			if(node->next->next->ExpType!=specifierType){
 				errorHandler(5,node->val);
 				return;
@@ -106,6 +138,7 @@ void loadSymbol(treeNode *node,int depth){
 								   free(titem);
 							   }
 							   item->implemented=1;
+							   unimplementedFunctions--;
 						   }
 						   else{
 							   functionInsert(node);
@@ -292,28 +325,42 @@ void loadSymbol(treeNode *node,int depth){
 					  }
 					  break;
 		case Stmt:
-					  if(node->genCount==3){
-						  treeNode *func=node;
-						  while(func->type!=ExtDef){
-							  func=func->parentNode;
-						  }
-						  functionItem *item=functionSearch(CHILD1(CHILD2(func))->text);
-						  if(item!=0){
-							  if(item->returnType!=CHILD2(node)->ExpType){
-								  errorHandler(8,node->val);
-								  return;
-							  }
-						  }
-						  else{
-							  if(specifierRead(CHILD1(func))!=CHILD2(node)->ExpType){
-								  errorHandler(8,node->val);
-								  return;
+					  switch(node->genCount){
+						  case 3:{
+									 treeNode *func=node;
+									 while(func->type!=ExtDef){
+										 func=func->parentNode;
+									 }
+									 functionItem *item=functionSearch(CHILD1(CHILD2(func))->text);
+									 if(item!=0){
+										 if(item->returnType!=CHILD2(node)->ExpType){
+											 errorHandler(8,node->val);
+											 return;
+										 }
+									 }
+									 else{
+										 if(specifierRead(CHILD1(func))!=CHILD2(node)->ExpType){
+											 errorHandler(8,node->val);
+											 return;
 
-							  }
-						  }
+										 }
+									 }
+									 break;
+								 }
+						  case 4:
+						  case 5:
+						  case 6:
+								 if(CHILD3(node)->ExpType!=_int){
+									 errorHandler(7,CHILD3(node)->val);
+								 }
+
 					  }
 					  break;
-
+		case Program:
+					  if(unimplementedFunctions!=0){
+						  errorHandler(18,node->val);
+					  }
+					  break;
 	}
 	return;
 }
