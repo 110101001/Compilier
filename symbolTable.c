@@ -23,15 +23,18 @@ void loadParameters(treeNode *node,int depth){
 			dec=dec->parentNode;
 			arrayDim++;
 		}
-		paraList[paraCount]=malloc(sizeof(varibleItem));
-		paraList[paraCount]->type=type;
-		paraList[paraCount]->name=CHILD1(node)->text;
-		paraList[paraCount]->arrayDim=arrayDim;
-		if(arrayDim!=0){
-			paraList[paraCount]->arrayLen=malloc(arrayDim*sizeof(int));
-			for(int i=0;i<arrayDim;i++){
-				node=node->parentNode;
-				paraList[paraCount]->arrayLen[i]=CHILD3(node)->val;
+		paraList[paraCount]=varibleSearch(CHILD1(node)->text);
+		if(paraList[paraCount]==0){//The only reason this happens is Error 19.
+			paraList[paraCount]=malloc(sizeof(varibleItem));
+			paraList[paraCount]->type=type;
+			paraList[paraCount]->name=CHILD1(node)->text;
+			paraList[paraCount]->arrayDim=arrayDim;
+			if(arrayDim!=0){
+				paraList[paraCount]->arrayLen=malloc(arrayDim*sizeof(int));
+				for(int i=0;i<arrayDim;i++){
+					node=node->parentNode;
+					paraList[paraCount]->arrayLen[i]=CHILD3(node)->val;
+				}
 			}
 		}
 		paraCount++;
@@ -122,6 +125,13 @@ void varibleInsert(treeNode *node,int type){
 			dec=dec->parentNode;
 			varTable[pos]->arrayLen[i]=CHILD3(dec)->val;
 		}
+	}
+	treeNode *name=node;
+	while(name->type!=ExtDef&&name->type!=StructSpecifier){
+		name=name->parentNode;
+	}
+	if(CHILD1(CHILD2(name))!=0){
+		varTable[pos]->parentName=CHILD1(CHILD2(name))->text;
 	}
 	return;
 }
@@ -228,4 +238,7 @@ functionItem *functionSearch(char *name){
 		pos++;
 	}
 	return 0;
+}
+
+generatePrebuiltFunctions(){
 }

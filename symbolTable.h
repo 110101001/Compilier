@@ -9,6 +9,7 @@
 typedef struct {
 	char *name;
 	int type;
+	char *parentName;
 	int arrayDim;
 	int *arrayLen;
 } varibleItem;

@@ -10,16 +10,27 @@ enum symbols{Program, ExtDefList, ExtDef,ExtDecList,Specifier,StructSpecifier,Op
 
 enum{_int,_float};
 
+typedef union inhAttr{
+}inhAttr;
+
+typedef union sys{
+	struct{
+		int ExpType;
+		int ExpDim;
+	};
+}sysAttr;
+
 typedef struct treeNode{
 	int type;
+	char visited;
 	union{
 		int val;
 		float fval;
 	};
 	char *text;
 	int genCount;
-	int ExpType;
-	int ExpDim;
+	inhAttr *inh;
+	sysAttr *sys;
 	struct treeNode *parentNode;
 	struct treeNode* children;
 	struct treeNode* next;
@@ -35,5 +46,6 @@ treeNode* newFloatNode(int type,float val,int genCount);
 void insertNode(treeNode* pnode,treeNode* cnode);
 void deleteNode(treeNode* node);
 void travelNode(treeNode* root,void (*action)(treeNode*,int),int depth);
+void travelNodeRev(treeNode* root,void (*action)(treeNode*,int),int depth);
 
 #endif

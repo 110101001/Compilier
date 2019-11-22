@@ -2,6 +2,7 @@
 #include "malloc.h"
 
 treeNode* root;
+char visitedFlag;
 
 void strcp(char *a,char *b){
 	while(*b!=0){
@@ -34,8 +35,14 @@ treeNode* newNode(int type,int val,int genCount){
 	node->next=0;
 	node->parentNode=0;
 	node->genCount=genCount;
-	node->ExpType=-1;
-	node->ExpDim=0;
+	node->sys=malloc(sizeof(sysAttr));
+	node->inh=malloc(sizeof(inhAttr));
+	switch(type){
+		case 19:
+			node->sys->ExpType=-1;
+			node->sys->ExpDim=0;
+			break;	
+	}
 	return node; 
 }
 
@@ -48,8 +55,14 @@ treeNode* newFloatNode(int type,float val,int genCount){
 	node->next=0;
 	node->parentNode=0;
 	node->genCount=genCount;
-	node->ExpType=-1;
-	node->ExpDim=0;
+	node->sys=malloc(sizeof(sysAttr));
+	node->inh=malloc(sizeof(inhAttr));
+	switch(type){
+		case 19:
+			node->sys->ExpType=-1;
+			node->sys->ExpDim=0;
+			break;	
+	}
 	return node; 
 }
 
@@ -71,11 +84,27 @@ void insertNode(treeNode* pnode,treeNode* cnode){
 }
 //void deleteNode(treeNode* node);
 void travelNode(treeNode* root,void (*action)(treeNode*,int),int depth){
+	if(root->visited==visitedFlag){
 	treeNode *p=root->children;
 	while(p!=0){
 		travelNode(p,action,depth+1);
 		p=p->next;
 	}
 	action(root,depth);
+	root->visited=!visitedFlag;
+	}
+	return;
+}
+
+void travelNodeRev(treeNode* root,void (*action)(treeNode*,int),int depth){
+	if(root->visited==visitedFlag){
+	treeNode *p=root->children;
+	action(root,depth);
+	while(p!=0){
+		travelNode(p,action,depth+1);
+		p=p->next;
+	}
+	root->visited=!visitedFlag;
+	}
 	return;
 }

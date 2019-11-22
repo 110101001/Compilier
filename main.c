@@ -5,7 +5,7 @@
 
 extern treeNode* root;
 extern int globalErrorFlag;
-
+extern char visitedFlag;
 void printInfo(treeNode *node,int depth);
 
 int main(int argc,char **argv){
@@ -22,6 +22,7 @@ int main(int argc,char **argv){
 	//generate symboltable
 	if(globalErrorFlag==0){
 		travelNode(root,loadSymbol,0);
+		visitedFlag=!visitedFlag;
 	}
 	return 0;
 }
