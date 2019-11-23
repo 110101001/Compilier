@@ -2,6 +2,7 @@
 #include "grammerTree.h"
 #include "syntax.tab.h"
 #include "semantics.h"
+#include "translate.h"
 
 extern treeNode* root;
 extern int globalErrorFlag;
@@ -21,7 +22,11 @@ int main(int argc,char **argv){
 
 	//generate symboltable
 	if(globalErrorFlag==0){
-		travelNode(root,loadSymbol,0);
+		travelNode(root,loadSymbol);
+		visitedFlag=!visitedFlag;
+	}
+	if(globalErrorFlag==0){
+		travelNode(root,translate);
 		visitedFlag=!visitedFlag;
 	}
 	return 0;

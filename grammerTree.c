@@ -83,28 +83,22 @@ void insertNode(treeNode* pnode,treeNode* cnode){
 	return;
 }
 //void deleteNode(treeNode* node);
-void travelNode(treeNode* root,void (*action)(treeNode*,int),int depth){
-	if(root->visited==visitedFlag){
+void travelNode(treeNode* root,void (*action)(treeNode*)){
 	treeNode *p=root->children;
 	while(p!=0){
-		travelNode(p,action,depth+1);
+		travelNode(p,action);
 		p=p->next;
 	}
-	action(root,depth);
-	root->visited=!visitedFlag;
-	}
+	action(root);
 	return;
 }
 
-void travelNodeRev(treeNode* root,void (*action)(treeNode*,int),int depth){
-	if(root->visited==visitedFlag){
+void travelNodeRev(treeNode* root,void (*action)(treeNode*)){
 	treeNode *p=root->children;
-	action(root,depth);
+	action(root);
 	while(p!=0){
-		travelNode(p,action,depth+1);
+		travelNode(p,action);
 		p=p->next;
-	}
-	root->visited=!visitedFlag;
 	}
 	return;
 }

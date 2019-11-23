@@ -4,20 +4,21 @@
 #include<stdio.h>
 #include"symbolTable.h"
 
-typedef struct IRVal{
+typedef struct IRVar{
 	enum {VARIABLE,TEMP,CONSTANT,ADDRESS} type;
 	union{
 		int val;
 		int no;
 		char *name;
 	};
-}IRVal;
+}IRVar;
 
 typedef struct IRStmt{
-	enum code{_LABE, _FUNC, _ASSI , _ADD, _SUB, _MULT, _DIVI , _ADDR, _REFE, _GOTO, _IF, _RETU, _DEC, _ARG, _CALL, _PARA, _READ ,_WRIT} type;
-	IRVal *target;
-	IRVal *arg1;
-	IRVal *arg2;
+	enum {_LABE, _FUNC, _ASSI , _ADD, _SUB, _MULT, _DIVI , _ADDR, _REFE, _GOTO, _RETU, _DEC, _ARG, _CALL, _PARA, _READ ,_WRIT,
+	_IFL,_IFLE,_IFS,_IFSE,_IFE,_IFNE} type;
+	IRVar *target;
+	IRVar *arg1;
+	IRVar *arg2;
 }IRStmt;
 
 typedef struct IRStmtList{
@@ -26,9 +27,11 @@ typedef struct IRStmtList{
 }IRStmtList;
 
 IRStmtList *newStmtList(IRStmt *stmt);
-IRStmt *newStmt(int type, IRVal *target,IRVal *arg1,IRVal *arg2);
-IRVal *newTempIRVal();
-IRVal *newVaribleIRVal(varibleItem *item);
-IRVal *newNumIRVal(int num);
+IRStmt *newStmt(int type, IRVar *target,IRVar *arg1,IRVar *arg2);
+IRVar *newTempIRVar();
+IRVar *newVaribleIRVar(varibleItem *item);
+IRVar *newNumIRVar(int num);
+IRVar *newLabelIRVar();
+IRStmtList *catStmtList(IRStmtList *list1,IRStmtList *list2);
 
 #endif

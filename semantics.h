@@ -6,6 +6,6 @@
 
 int specifierRead(treeNode *node);
 
-void loadSymbol(treeNode *node,int depth);
+void loadSymbol(treeNode *node);
 
 #endif

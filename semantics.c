@@ -77,7 +77,7 @@ int specifierRead(treeNode *node){
 	}
 }
 
-void DecListHandler(treeNode *node,int depth){
+void DecListHandler(treeNode *node){
 	if(node->type==VarDec&&node->parentNode->type!=VarDec){
 		treeNode *name=node;
 		while(name->genCount==2){
@@ -114,13 +114,13 @@ void DecListHandler(treeNode *node,int depth){
 	}	
 }
 
-void loadSymbol(treeNode *node,int depth){
+void loadSymbol(treeNode *node){
 	switch((enum symbols)node->type){
 		case ExtDef:
 			switch(node->genCount){
 				case 1://global var dec
 					specifierType=specifierRead(CHILD1(node));
-					travelNode(CHILD2(node),DecListHandler,0);
+					travelNode(CHILD2(node),DecListHandler);
 					break;
 				case 2://structure def or nothing meaningful(int;||float;)
 					specifierRead(CHILD1(node));
@@ -174,7 +174,7 @@ void loadSymbol(treeNode *node,int depth){
 					  //don't break if the func is not loaded, act like def.
 		case Def:
 					  specifierType=specifierRead(CHILD1(node));
-					  travelNode(CHILD2(node),DecListHandler,0);
+					  travelNode(CHILD2(node),DecListHandler);
 					  break;
 		case  Exp:
 					  switch(node->genCount){

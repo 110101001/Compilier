@@ -45,7 +45,7 @@ treeNode* newNode(int type,int val,int genCount);
 treeNode* newFloatNode(int type,float val,int genCount);
 void insertNode(treeNode* pnode,treeNode* cnode);
 void deleteNode(treeNode* node);
-void travelNode(treeNode* root,void (*action)(treeNode*,int),int depth);
-void travelNodeRev(treeNode* root,void (*action)(treeNode*,int),int depth);
+void travelNode(treeNode* root,void (*action)(treeNode*));
+void travelNodeRev(treeNode* root,void (*action)(treeNode*));
 
 #endif

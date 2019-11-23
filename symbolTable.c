@@ -11,7 +11,7 @@ varibleItem *paraList[PARA_LEN];
 int paraCount;
 int unimplementedFunctions=0;
 
-void loadParameters(treeNode *node,int depth){
+void loadParameters(treeNode *node){
 	static int type;
 	if(node->type==Specifier){
 		type=specifierRead(node);
@@ -82,7 +82,7 @@ int structInsert(treeNode* node){
 	p->item=malloc(sizeof(structItem));
 
 	paraCount=0;
-	travelNode(CHILD4(node),loadParameters,0);
+	travelNode(CHILD4(node),loadParameters);
 	p->item->length=paraCount;
 
 	p->item->field=malloc(paraCount*sizeof(varibleItem*));
@@ -156,7 +156,7 @@ void functionInsert(treeNode *node){
 
 	paraCount=0;
 	if(CHILD3(CHILD2(node))->type==VarList){
-		travelNode(CHILD3(CHILD2(node)),loadParameters,0);
+		travelNode(CHILD3(CHILD2(node)),loadParameters);
 		funcTable[pos]->parameters=malloc(paraCount*sizeof(varibleItem*));
 		for(int i=0;i<paraCount;i++){
 			funcTable[pos]->parameters[i]=paraList[i];
@@ -184,7 +184,7 @@ functionItem *functionCreate(treeNode *node){
 
 	paraCount=0;
 	if(CHILD3(CHILD2(node))->type==VarList){
-		travelNode(CHILD3(CHILD2(node)),loadParameters,0);
+		travelNode(CHILD3(CHILD2(node)),loadParameters);
 		item->parameters=malloc(paraCount*sizeof(varibleItem*));
 		for(int i=0;i<paraCount;i++){
 			item->parameters[i]=paraList[i];
