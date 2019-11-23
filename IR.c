@@ -46,6 +46,12 @@ IRVar *newLabelIRVar(){
 }
 IRStmtList *catStmtList(IRStmtList *list1,IRStmtList *list2){
 	IRStmtList *p1=list1;
+	if(list1==NULL){
+		return list2;
+	}
+	else if(list2==NULL){
+		return list1;
+	}
 	while(p1->next!=0){
 		p1=p1->next;
 	}
