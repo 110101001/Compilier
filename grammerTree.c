@@ -10,6 +10,7 @@ void strcp(char *a,char *b){
 		a++;
 		b++;
 	}
+	*a=0;
 }
 
 int strcm(char *a,char *b){
@@ -97,7 +98,7 @@ void travelNodeRev(treeNode* root,void (*action)(treeNode*)){
 	treeNode *p=root->children;
 	action(root);
 	while(p!=0){
-		travelNode(p,action);
+		travelNodeRev(p,action);
 		p=p->next;
 	}
 	return;

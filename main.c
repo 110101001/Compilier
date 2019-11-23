@@ -6,6 +6,7 @@
 
 extern treeNode* root;
 extern int globalErrorFlag;
+extern IRStmtList *head;
 void printInfo(treeNode *node,int depth);
 
 int main(int argc,char **argv){
@@ -24,8 +25,9 @@ int main(int argc,char **argv){
 		travelNode(root,loadSymbol);
 	}
 	if(globalErrorFlag==0){
-		travelNodeRev(root,translate);
+		travelNodeRev(root,combineCode);
 	}
+	printCode(head);
 	return 0;
 }
 

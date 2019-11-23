@@ -25,10 +25,10 @@ IRVar *newTempIRVar(){
 	return newUnit;
 }
 
-IRVar *newVaribleIRVar(varibleItem *item){
+IRVar *newVaribleIRVar(char *name){
 	IRVar *newUnit=malloc(sizeof(IRVar));
 	newUnit->type=VARIABLE;
-	newUnit->name =item->name;
+	newUnit->name =name;
 	return newUnit;
 }
 IRVar *newNumIRVar(int num){
@@ -40,10 +40,11 @@ IRVar *newNumIRVar(int num){
 
 IRVar *newLabelIRVar(){
 	IRVar *newUnit=malloc(sizeof(IRVar));
-	newUnit->type=TEMP;
+	newUnit->type=LABEL;
 	newUnit->no=currentLabel++;
 	return newUnit;
 }
+
 IRStmtList *catStmtList(IRStmtList *list1,IRStmtList *list2){
 	IRStmtList *p1=list1;
 	if(list1==NULL){
@@ -57,4 +58,120 @@ IRStmtList *catStmtList(IRStmtList *list1,IRStmtList *list2){
 	}
 	p1->next=list2;
 	return list1;
+}
+
+char *printArg(IRVar *arg){
+	if(arg==NULL){
+		return NULL;
+	}
+	char *strArg=malloc(100*sizeof(char));
+	switch(arg->type){
+		case VARIABLE:
+			strcp(strArg,arg->name);
+			break;
+		case LABEL:
+			sprintf(strArg,"L%d",arg->no);
+			break;
+		case TEMP:
+			sprintf(strArg,"_T%d",arg->no);
+			break;
+		case CONSTANT:
+			sprintf(strArg,"#%d",arg->val);
+			break;
+	}
+	return strArg;
+}
+
+void printLine(IRStmt *stmt){
+	char str[100];
+	char *arg1,*arg2,*target;
+	arg1=printArg(stmt->arg1);
+	arg2=printArg(stmt->arg2);
+	target=printArg(stmt->target);
+	switch(stmt->type){
+		case _LABE:
+			sprintf(str,"LABEL %s",arg1);
+			break;
+		case _FUNC:
+
+			break;
+		case _ASSI:
+			sprintf(str,"%s := %s",target,arg1);
+			break;
+		case _ADD:
+			sprintf(str,"%s := %s + %s",target,arg1,arg2);
+			break;
+		case _SUB:
+			sprintf(str,"%s := %s - %s",target,arg1,arg2);
+			break;
+		case _MULT:
+			sprintf(str,"%s := %s * %s",target,arg1,arg2);
+			break;
+		case _DIVI:
+			sprintf(str,"%s := %s / %s",target,arg1,arg2);
+			break;
+		case _ADDR:
+
+			break;
+		case _REFE:
+
+			break;
+		case _GOTO:
+			sprintf(str,"GOTO %s",target);
+			break;
+		case _RETU:
+
+			break;
+		case _DEC:
+
+			break;
+		case _ARG:
+
+			break;
+		case _CALL:
+
+			break;
+		case _PARA:
+
+			break;
+		case _READ:
+
+			break;
+		case _WRIT:
+
+			break;
+		case _IFL:
+			sprintf(str,"if %s>%s GOTO %s",arg1,arg2,target);
+			break;
+		case _IFLE:
+			sprintf(str,"if %s>=%s GOTO %s",arg1,arg2,target);
+			break;
+		case _IFE:
+			sprintf(str,"if %s==%s GOTO %s",arg1,arg2,target);
+			break;
+		case _IFNE:
+			sprintf(str,"if %s!=%s GOTO %s",arg1,arg2,target);
+			break;
+		case _IFS:
+			sprintf(str,"if %s<%s GOTO %s",arg1,arg2,target);
+			break;
+		case _IFSE:
+			sprintf(str,"if %s<=%s GOTO %s",arg1,arg2,target);
+			break;
+
+
+	}
+	free(arg1);
+	free(arg2);
+	free(target);
+	printf("%s\n",str);
+	return;
+}
+
+void printCode(IRStmtList *head){
+	IRStmtList *p=head;
+	while(p!=0){
+		printLine(p->stmt);
+		p=p->next;
+	}
 }

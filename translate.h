@@ -3,11 +3,13 @@
 #include "IR.h"
 #include "grammerTree.h"
 
+void combineCode(treeNode *node);
 IRStmtList *translate(treeNode *node);
+IRStmtList *translateStmtList(treeNode *node);
 IRStmtList *translateExp(IRVar *retVar,treeNode *node);
 IRStmtList *translateExpStmt(treeNode *node);
 IRStmtList *translateReturn(treeNode *node);
 IRStmtList *translateIf(treeNode *node);
 IRStmtList *translateWhile(treeNode *node);
-IRStmtList *translateCond(treeNode *node,IRStmt *Lt,IRStmt *Lf);
+IRStmtList *translateCond(treeNode *node,IRVar *Lt,IRVar *Lf);
 #endif

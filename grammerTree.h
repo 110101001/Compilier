@@ -5,6 +5,8 @@
 #define CHILD2(node) ((node)->children->next)
 #define CHILD3(node) ((node)->children->next->next)
 #define CHILD4(node) ((node)->children->next->next->next)
+#define CHILD5(node) ((node)->children->next->next->next->next)
+#define CHILD7(node) ((node)->children->next->next->next->next->next->next)
 
 enum symbols{Program, ExtDefList, ExtDef,ExtDecList,Specifier,StructSpecifier,OptTag,Tag,VarDec,FunDec,VarList,ParamDec,CompSt,StmtList,Stmt,DefList,Def,DecList,Dec,Exp,Args};
 
