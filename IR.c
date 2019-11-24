@@ -60,6 +60,16 @@ IRStmtList *catStmtList(IRStmtList *list1,IRStmtList *list2){
 	return list1;
 }
 
+void removeNextStmt(IRStmtList* current){
+	if(current->next==0){
+		return;
+	}
+	IRStmtList *next=current->next->next;
+	free(current->next);
+	current->next=next;
+	return;
+}
+
 char *printArg(IRVar *arg){
 	if(arg==NULL){
 		return NULL;
@@ -90,10 +100,10 @@ void printLine(IRStmt *stmt){
 	target=printArg(stmt->target);
 	switch(stmt->type){
 		case _LABE:
-			sprintf(str,"LABEL %s",arg1);
+			sprintf(str,"LABEL %s :",arg1);
 			break;
 		case _FUNC:
-
+			sprintf(str,"FUNCTION %s :",arg1);
 			break;
 		case _ASSI:
 			sprintf(str,"%s := %s",target,arg1);
@@ -120,16 +130,16 @@ void printLine(IRStmt *stmt){
 			sprintf(str,"GOTO %s",target);
 			break;
 		case _RETU:
-
+			sprintf(str,"RETURN %s",arg1);
 			break;
 		case _DEC:
 
 			break;
 		case _ARG:
-
+			sprintf(str,"ARG %s",arg1);
 			break;
 		case _CALL:
-
+			sprintf(str,"%s := CALL %s",target,arg1);
 			break;
 		case _PARA:
 

@@ -6,8 +6,23 @@ void combineCode(treeNode *node){
 	if(node->visited==1){
 		return;
 	}
-	IRStmtList *newList=translateStmtList(node);
+	IRStmtList *newList=translate(node);
 	head=catStmtList(head,newList);
+}
+
+IRStmtList *translate(treeNode *node){
+	switch(node->type){
+		case StmtList:
+			return translateStmtList(node);
+			break;
+		case ExtDef:
+			return translateExtDef(node);
+			break;
+		case DefList:
+			return translateDefList(node);
+			break;
+	}
+	return NULL;
 }
 
 IRStmtList *translateDec(treeNode *node){
@@ -24,13 +39,17 @@ IRStmtList *translateDec(treeNode *node){
 }
 
 IRStmtList *translateDefList(treeNode *node){
-	IRStmtList *ret;
+	node->visited=1;
+	IRStmtList *ret=NULL;
 	if(node->type==DefList){
-		treeNode DefL=node;
+		treeNode *DefL=node;
 		while(DefL!=0){
-			treeNode DecL=CHILD2(CHILD1(node));
-			while(CHILD2(DecL)!=0){
-				ret=catStmtLis(ret,translateDec(CHILD1(DecL)));
+			treeNode *DecL=CHILD2(CHILD1(node));
+			while(1){
+				ret=catStmtList(ret,translateDec(CHILD1(DecL)));
+				if(CHILD2(DecL)==0){
+					break;
+				}
 				DecL=CHILD3(DecL);
 			}
 			DefL=CHILD2(DefL);
@@ -40,6 +59,7 @@ IRStmtList *translateDefList(treeNode *node){
 }
 
 IRStmtList *translateExtDef(treeNode *node){
+	node->visited=1;
 	if(node->type!=ExtDef){
 		return NULL;
 	}
@@ -50,17 +70,74 @@ IRStmtList *translateExtDef(treeNode *node){
 	IRStmtList *ret;
 	switch(node->genCount){
 		case 3://Functiion Def
-			f1=newVaribleIRVar(CHILD1(CHILD2(node)));
-			FDS=newStmt(_FUNC,NULL,Arg1,NULL);
+			f1=newVaribleIRVar(CHILD1(CHILD2(node))->text);
+			FDS=newStmt(_FUNC,NULL,f1,NULL);
 			FDSL=newStmtList(FDS);
-			list1=translateStmtList(CHILD2(CHILD3(node)));
+			list1=translateCompSt(CHILD3(node));
 			ret=catStmtList(FDSL,list1);
 			return ret;
 			break;
 	}
 }
 
+IRStmtList *translateArgs(treeNode *node){
+	treeNode *present=node;
+	IRStmtList *args=NULL;
+	IRStmtList *argExps=NULL;
+	IRStmtList *ret=NULL;
+	if(present->type==Args){
+		while(1){
+			IRVar *argVar=newTempIRVar();
+			argExps=catStmtList(argExps,translateExp(argVar,CHILD1(present)));
+			args=catStmtList(args,newStmtList(newStmt(_ARG,NULL,argVar,NULL)));
+			if(CHILD2(present)==0){
+				break;
+			}
+			present=CHILD3(present);
+		}
+	}
+	ret=catStmtList(argExps,args);
+	return ret;
+}
+
+IRStmtList *translateCall(IRVar *retVar,treeNode *node){
+	IRVar *f1=newVaribleIRVar(CHILD1(node)->text);
+	IRStmt *FCS=newStmt(_CALL,retVar,f1,NULL);
+	IRStmtList *FCSL=newStmtList(FCS);
+	IRStmtList *expList=translateArgs(CHILD3(node));
+	IRStmtList *ret=NULL;
+	if(strcm(CHILD1(node)->text,"read")==0){
+		IRStmt *readS=newStmt(_READ,retVar,NULL,NULL);
+		IRStmtList *readSL=newStmtList(readS);
+		return readSL;
+	}
+	else if(strcm(CHILD1(node)->text,"write")==0){
+		IRStmtList *p=expList;
+		while(p->next!=0){
+			p=p->next;
+		}
+		IRVar *writeVar=p->stmt->arg1;
+		removeNextStmt(p);
+		IRStmt *writeS=newStmt(_WRIT,NULL,writeVar,NULL);
+		IRStmtList *writeSL=newStmtList(writeS);
+		ret=catStmtList(expList,writeSL);
+		return ret;
+	}
+	ret=catStmtList(expList,FCSL);
+	return ret;
+}
+
+IRStmtList *translateCompSt(treeNode *node){
+	if(CHILD2(node)->type==DefList){
+		return catStmtList(translateDefList(CHILD2(node)),translateStmtList(CHILD3(node)));
+	}
+	else{
+		return translateStmtList(CHILD2(node));
+	}
+}
+
 IRStmtList *translateStmtList(treeNode *node){
+	node->visited=1;
 	if(node->type==StmtList){
 		node->visited=1;
 		IRStmtList *newList=NULL;
@@ -76,17 +153,13 @@ IRStmtList *translateStmtList(treeNode *node){
 }
 
 IRStmtList *translateStmt(treeNode *node){
-	if(node->visited==1){
-		return NULL;
-	}
-	node->visited=1;
 	if(node->type==Stmt){
 		switch(node->genCount){
 			case 1:
 				return translateExpStmt(node);
 				break;
 			case 2:
-				return catStmtList(translateStmtList(CHILD2(CHILD1(node))),translateStmtList(CHILD3(CHILD1(node))));
+				return translateCompSt(CHILD1(node));
 				break;
 			case 3:
 				return translateReturn(node);
@@ -211,6 +284,10 @@ IRStmtList *translateExp(IRVar *retVar,treeNode *node){
 			ret=catStmtList(list1,mainSL);
 			return ret;
 			break;
+		case 12:
+		case 13:
+			return translateCall(retVar,node);
+			break;
 		case 16:
 			v1=newVaribleIRVar(CHILD1(node)->text);
 			mainS=newStmt(_ASSI,retVar,v1,NULL);
@@ -234,6 +311,7 @@ IRStmtList *translateExpStmt(treeNode *node){
 	IRVar *temp=newTempIRVar();
 	return translateExp(temp,CHILD1(node));
 }
+
 IRStmtList *translateReturn(treeNode *node){
 	IRVar *retVar=newTempIRVar();
 	IRStmt *retStmt=newStmt(_RETU,NULL,retVar,NULL);
@@ -241,6 +319,7 @@ IRStmtList *translateReturn(treeNode *node){
 	IRStmtList *expList=translateExp(retVar,CHILD2(node));
 	return catStmtList(expList,newList);
 }
+
 IRStmtList *translateIf(treeNode *node){
 	IRVar *l1=newLabelIRVar();
 	IRVar *l2=newLabelIRVar();

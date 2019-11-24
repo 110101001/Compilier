@@ -33,6 +33,7 @@ IRVar *newVaribleIRVar(char *name);
 IRVar *newNumIRVar(int num);
 IRVar *newLabelIRVar();
 IRStmtList *catStmtList(IRStmtList *list1,IRStmtList *list2);
+void removeNextStmt(IRStmtList* current);
 void printCode(IRStmtList *head);
 
 #endif
