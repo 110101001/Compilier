@@ -133,7 +133,7 @@ void printLine(IRStmt *stmt){
 			sprintf(str,"RETURN %s",arg1);
 			break;
 		case _DEC:
-
+			sprintf(str,"DEC %s %s",target,arg1);
 			break;
 		case _ARG:
 			sprintf(str,"ARG %s",arg1);
@@ -142,7 +142,7 @@ void printLine(IRStmt *stmt){
 			sprintf(str,"%s := CALL %s",target,arg1);
 			break;
 		case _PARA:
-
+			sprintf(str,"PARAM %s",target);
 			break;
 		case _READ:
 

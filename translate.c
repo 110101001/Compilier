@@ -1,4 +1,5 @@
 #include "translate.h"
+#include "symbolTable.h"
 
 IRStmtList *head;
 
@@ -26,16 +27,21 @@ IRStmtList *translate(treeNode *node){
 }
 
 IRStmtList *translateDec(treeNode *node){
-	if(node->type!=Dec||node->genCount!=2){
+	if(node->type!=Dec){
 		return NULL;
 	}
-	IRVar *v1=newVaribleIRVar(CHILD1(CHILD1(node))->text);
-	IRVar *t1=newTempIRVar();
-	IRStmtList *list1=translateExp(t1,CHILD3(node));
-	IRStmt *assignS=newStmt(_ASSI,v1,t1,NULL);
-	IRStmtList *assignSL=newStmtList(assignS);
-	IRStmtList *ret=catStmtList(list1,assignSL);
-	return ret;
+	if(node->genCount==2){
+		IRVar *v1=newVaribleIRVar(CHILD1(CHILD1(node))->text);
+		IRVar *t1=newTempIRVar();
+		IRStmtList *list1=translateExp(t1,CHILD3(node));
+		IRStmt *assignS=newStmt(_ASSI,v1,t1,NULL);
+		IRStmtList *assignSL=newStmtList(assignS);
+		IRStmtList *ret=catStmtList(list1,assignSL);
+		return ret;
+	}
+	else if(CHILD1(node)->genCount==2){
+		return translateArrayDec(CHILD1(node));
+	}
 }
 
 IRStmtList *translateDefList(treeNode *node){
@@ -63,21 +69,35 @@ IRStmtList *translateExtDef(treeNode *node){
 	if(node->type!=ExtDef){
 		return NULL;
 	}
+	switch(node->genCount){
+		case 3://Functiion Def
+			return translateFunction(node);
+			break;
+	}
+	return NULL;
+}
+
+IRStmtList *translateFunction(treeNode *node){
 	IRVar *f1;
 	IRStmt *FDS;
 	IRStmtList *FDSL;
 	IRStmtList *list1;
+	IRStmtList *PSL=NULL;
 	IRStmtList *ret;
-	switch(node->genCount){
-		case 3://Functiion Def
-			f1=newVaribleIRVar(CHILD1(CHILD2(node))->text);
-			FDS=newStmt(_FUNC,NULL,f1,NULL);
-			FDSL=newStmtList(FDS);
-			list1=translateCompSt(CHILD3(node));
-			ret=catStmtList(FDSL,list1);
-			return ret;
-			break;
+	f1=newVaribleIRVar(CHILD1(CHILD2(node))->text);
+	FDS=newStmt(_FUNC,NULL,f1,NULL);
+	FDSL=newStmtList(FDS);
+	list1=translateCompSt(CHILD3(node));
+
+	functionItem *item=functionSearch(f1->name);
+	for(int i=0;i<item->length;i++){
+		IRVar *v1=newVaribleIRVar(item->parameters[i]->name);
+		IRStmt *PS=newStmt(_PARA,v1,NULL,NULL);
+		PSL=catStmtList(PSL,newStmtList(PS));
 	}
+	ret=catStmtList(FDSL,PSL);
+	ret=catStmtList(ret,list1);
+	return ret;
 }
 
 IRStmtList *translateArgs(treeNode *node){
@@ -468,4 +488,57 @@ IRStmtList *translateCond(treeNode *node,IRVar *Lt,IRVar *Lf){
 			return ret;
 			break;
 	}
+}
+
+IRStmtList *translateArrayDec(treeNode *node){
+	if(node->type!=VarDec){
+		return NULL;
+	}
+	treeNode *dec=node;
+	while(CHILD2(dec)!=0){
+		dec=CHILD1(dec);
+	}
+	varibleItem *item=varibleSearch(CHILD1(dec)->text);
+	int size=4;
+	for(int i=0;i<item->arrayDim;i++){
+		size=size*item->arrayLen[i];
+	}
+	IRVar *a1=newVaribleIRVar(CHILD1(dec)->text);
+	IRVar *c1=newNumIRVar(size);
+	IRStmt *DecS=newStmt(_DEC,a1,c1,NULL);
+	IRStmtList *DecL=newStmtList(DecS);
+	return DecL;
+}
+IRStmtList *translateArray(IRVar *retVar,treeNode *node){
+	if(node->type!=Exp||node->genCount!=14){
+		return NULL;
+	}
+	IRVar *a1=newVaribleIRVar(CHILD1(CHILD1(node))->text);
+	IRVar *t1=newTempIRVar();
+	IRStmtList *locList;
+	IRStmt *ADS=newStmt(_ADDR,t1,a1,NULL);
+	IRStmtList *ADSL=newStmtList(ADS);
+	locList=ADSL;
+	treeNode *present;
+	varibleItem *item=varibleSearch(CHILD1(CHILD1(node))->text);
+	for(int i=0;i<item->arrayDim;i++){
+		int unitSize=4;
+		for(int j=i+1;j<item->arrayDim;j++){
+			unitSize=unitSize*item->arrayLen[j];
+		}
+		IRVar *USV=newNumIRVar(unitSize);
+		IRVar *index=newTempIRVar();
+		IRStmtList *expList=translateExp(index,CHILD3(node));
+		locList=catStmtList(locList,expList);
+		IRStmt *multS=newStmt(_MULT,index,index,USV);
+		IRStmtList *multSL=newStmtList(multS);
+		locList=catStmtList(locList,multSL);
+		IRStmt *addS=newStmt(_ADD,t1,t1,index);
+		IRStmtList *addSL=newStmtList(addS);
+		locList=catStmtList(locList,addSL);
+	}
+	IRStmt *AS2=newStmt(_REFE,retVar,t1,NULL);
+	IRStmtList *ASL2=newStmtList(AS2);
+	locList=catStmtList(locList,ASL2);
+	return locList;
 }
