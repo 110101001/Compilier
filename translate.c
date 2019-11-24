@@ -10,24 +10,62 @@ void combineCode(treeNode *node){
 	head=catStmtList(head,newList);
 }
 
+IRStmtList *translateDec(treeNode *node){
+	if(node->type!=Dec||node->genCount!=2){
+		return NULL;
+	}
+	IRVar *v1=newVaribleIRVar(CHILD1(CHILD1(node))->text);
+	IRVar *t1=newTempIRVar();
+	IRStmtList *list1=translateExp(t1,CHILD3(node));
+	IRStmt *assignS=newStmt(_ASSI,v1,t1,NULL);
+	IRStmtList *assignSL=newStmtList(assignS);
+	IRStmtList *ret=catStmtList(list1,assignSL);
+	return ret;
+}
+
+IRStmtList *translateDefList(treeNode *node){
+	IRStmtList *ret;
+	if(node->type==DefList){
+		treeNode DefL=node;
+		while(DefL!=0){
+			treeNode DecL=CHILD2(CHILD1(node));
+			while(CHILD2(DecL)!=0){
+				ret=catStmtLis(ret,translateDec(CHILD1(DecL)));
+				DecL=CHILD3(DecL);
+			}
+			DefL=CHILD2(DefL);
+		}
+	}
+	return ret;
+}
+
+IRStmtList *translateExtDef(treeNode *node){
+	if(node->type!=ExtDef){
+		return NULL;
+	}
+	IRVar *f1;
+	IRStmt *FDS;
+	IRStmtList *FDSL;
+	IRStmtList *list1;
+	IRStmtList *ret;
+	switch(node->genCount){
+		case 3://Functiion Def
+			f1=newVaribleIRVar(CHILD1(CHILD2(node)));
+			FDS=newStmt(_FUNC,NULL,Arg1,NULL);
+			FDSL=newStmtList(FDS);
+			list1=translateStmtList(CHILD2(CHILD3(node)));
+			ret=catStmtList(FDSL,list1);
+			return ret;
+			break;
+	}
+}
+
 IRStmtList *translateStmtList(treeNode *node){
 	if(node->type==StmtList){
 		node->visited=1;
 		IRStmtList *newList=NULL;
 		while(node!=0){
-			newList=catStmtList(newList,translate(CHILD1(node)));
-			node=CHILD2(node);
-		}
-		return newList;
-	}
-	else if(node->type==DecList){
-		node->visited=1;
-		IRStmtList *newList=NULL;
-		while(node!=0){
-			treeNode *decNode=CHILD2(CHILD1(node));
-
-
-
+			newList=catStmtList(newList,translateStmt(CHILD1(node)));
 			node=CHILD2(node);
 		}
 		return newList;
@@ -37,7 +75,7 @@ IRStmtList *translateStmtList(treeNode *node){
 	}
 }
 
-IRStmtList *translate(treeNode *node){
+IRStmtList *translateStmt(treeNode *node){
 	if(node->visited==1){
 		return NULL;
 	}
@@ -207,7 +245,7 @@ IRStmtList *translateIf(treeNode *node){
 	IRVar *l1=newLabelIRVar();
 	IRVar *l2=newLabelIRVar();
 	IRStmtList *condSL=translateCond(CHILD3(node),l1,l2);
-	IRStmtList *list1=translate(CHILD5(node));
+	IRStmtList *list1=translateStmt(CHILD5(node));
 	IRStmt *LS1=newStmt(_LABE,NULL,l1,NULL);
 	IRStmtList *LSL1=newStmtList(LS1);
 	IRStmt *LS2=newStmt(_LABE,NULL,l2,NULL);
@@ -220,7 +258,7 @@ IRStmtList *translateIf(treeNode *node){
 		IRStmtList *LSL3=newStmtList(LS3);
 		IRStmt *gotoLS3=newStmt(_GOTO,l3,NULL,NULL);
 		IRStmtList *gotoLSL3=newStmtList(gotoLS3);
-		IRStmtList *list2=translate(CHILD7(node));
+		IRStmtList *list2=translateStmt(CHILD7(node));
 		ret=catStmtList(ret,gotoLSL3);
 		ret=catStmtList(ret,LSL2);
 		ret=catStmtList(ret,list2);
@@ -245,7 +283,7 @@ IRStmtList *translateWhile(treeNode *node){
 	IRStmt *gotoLS1=newStmt(_GOTO,l1,NULL,NULL);
 	IRStmtList *gotoLSL1=newStmtList(gotoLS1);
 	IRStmtList *condSL=translateCond(CHILD3(node),l2,l3);
-	IRStmtList *list1=translate(CHILD5(node));
+	IRStmtList *list1=translateStmt(CHILD5(node));
 	IRStmtList *ret=catStmtList(LSL1,condSL);
 	ret=catStmtList(ret,LSL2);
 	ret=catStmtList(ret,list1);
