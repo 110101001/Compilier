@@ -121,10 +121,13 @@ void printLine(IRStmt *stmt){
 			sprintf(str,"%s := %s / %s",target,arg1,arg2);
 			break;
 		case _ADDR:
-
+			sprintf(str,"%s := &%s",target,arg1);
 			break;
 		case _REFE:
-
+			sprintf(str,"%s := *%s",target,arg1);
+			break;
+		case _WMEM:
+			sprintf(str,"*%s := %s",arg1,arg2);
 			break;
 		case _GOTO:
 			sprintf(str,"GOTO %s",target);
@@ -145,10 +148,10 @@ void printLine(IRStmt *stmt){
 			sprintf(str,"PARAM %s",target);
 			break;
 		case _READ:
-
+			sprintf(str,"READ %s",target);
 			break;
 		case _WRIT:
-
+			sprintf(str,"WRITE %s",arg1);
 			break;
 		case _IFL:
 			sprintf(str,"if %s>%s GOTO %s",arg1,arg2,target);

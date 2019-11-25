@@ -4,14 +4,14 @@
 IRStmtList *head;
 
 void combineCode(treeNode *node){
-	if(node->visited==1){
-		return;
-	}
 	IRStmtList *newList=translate(node);
 	head=catStmtList(head,newList);
 }
 
 IRStmtList *translate(treeNode *node){
+	if(node->visited==1){
+		return NULL;
+	}
 	switch(node->type){
 		case StmtList:
 			return translateStmtList(node);
@@ -42,6 +42,7 @@ IRStmtList *translateDec(treeNode *node){
 	else if(CHILD1(node)->genCount==2){
 		return translateArrayDec(CHILD1(node));
 	}
+	return NULL;
 }
 
 IRStmtList *translateDefList(treeNode *node){
@@ -50,7 +51,7 @@ IRStmtList *translateDefList(treeNode *node){
 	if(node->type==DefList){
 		treeNode *DefL=node;
 		while(DefL!=0){
-			treeNode *DecL=CHILD2(CHILD1(node));
+			treeNode *DecL=CHILD2(CHILD1(DefL));
 			while(1){
 				ret=catStmtList(ret,translateDec(CHILD1(DecL)));
 				if(CHILD2(DecL)==0){
@@ -65,6 +66,9 @@ IRStmtList *translateDefList(treeNode *node){
 }
 
 IRStmtList *translateExtDef(treeNode *node){
+	if(node->visited==1){
+		return NULL;
+	}
 	node->visited=1;
 	if(node->type!=ExtDef){
 		return NULL;
@@ -157,13 +161,16 @@ IRStmtList *translateCompSt(treeNode *node){
 }
 
 IRStmtList *translateStmtList(treeNode *node){
+	if(node->visited==1){
+		return NULL;
+	}
 	node->visited=1;
 	if(node->type==StmtList){
 		node->visited=1;
 		IRStmtList *newList=NULL;
-		while(node!=0){
-			newList=catStmtList(newList,translateStmt(CHILD1(node)));
-			node=CHILD2(node);
+		newList=catStmtList(newList,translateStmt(CHILD1(node)));
+		if(CHILD2(node)!=0){
+			newList=catStmtList(newList,translateStmtList(CHILD2(node)));
 		}
 		return newList;
 	}
@@ -216,12 +223,17 @@ IRStmtList *translateExp(IRVar *retVar,treeNode *node){
 	IRStmtList *ret;
 	switch(node->genCount){
 		case 1:
-			v1=newVaribleIRVar(CHILD1(CHILD1(node))->text);
 			t1=newTempIRVar();
 			list1=translateExp(t1,CHILD3(node));
-			assignS=newStmt(_ASSI,v1,t1,NULL);
-			assignSL=newStmtList(assignS);
-			mainS=newStmt(_ASSI,retVar,v1,NULL);
+			if(CHILD1(node)->genCount==16){
+				v1=newVaribleIRVar(CHILD1(CHILD1(node))->text);
+				assignS=newStmt(_ASSI,v1,t1,NULL);
+				assignSL=newStmtList(assignS);
+			}
+			else{
+				assignSL=translateArray(NULL,t1,CHILD1(node));
+			}
+			mainS=newStmt(_ASSI,retVar,t1,NULL);
 			mainSL=newStmtList(mainS);
 			ret=catStmtList(list1,assignSL);
 			ret=catStmtList(ret,mainSL);
@@ -307,6 +319,9 @@ IRStmtList *translateExp(IRVar *retVar,treeNode *node){
 		case 12:
 		case 13:
 			return translateCall(retVar,node);
+			break;
+		case 14:
+			return translateArray(retVar,NULL,node);
 			break;
 		case 16:
 			v1=newVaribleIRVar(CHILD1(node)->text);
@@ -509,18 +524,22 @@ IRStmtList *translateArrayDec(treeNode *node){
 	IRStmtList *DecL=newStmtList(DecS);
 	return DecL;
 }
-IRStmtList *translateArray(IRVar *retVar,treeNode *node){
+IRStmtList *translateArray(IRVar *retVar,IRVar *assignVar,treeNode *node){
 	if(node->type!=Exp||node->genCount!=14){
 		return NULL;
 	}
-	IRVar *a1=newVaribleIRVar(CHILD1(CHILD1(node))->text);
+	treeNode *p=node;
+	while(CHILD1(p)!=0){
+		p=CHILD1(p);
+	}
+	IRVar *a1=newVaribleIRVar(p->text);
 	IRVar *t1=newTempIRVar();
 	IRStmtList *locList;
 	IRStmt *ADS=newStmt(_ADDR,t1,a1,NULL);
 	IRStmtList *ADSL=newStmtList(ADS);
 	locList=ADSL;
-	treeNode *present;
-	varibleItem *item=varibleSearch(CHILD1(CHILD1(node))->text);
+	varibleItem *item=varibleSearch(p->text);
+	treeNode *current=p->parentNode->parentNode;
 	for(int i=0;i<item->arrayDim;i++){
 		int unitSize=4;
 		for(int j=i+1;j<item->arrayDim;j++){
@@ -528,7 +547,8 @@ IRStmtList *translateArray(IRVar *retVar,treeNode *node){
 		}
 		IRVar *USV=newNumIRVar(unitSize);
 		IRVar *index=newTempIRVar();
-		IRStmtList *expList=translateExp(index,CHILD3(node));
+		IRStmtList *expList=translateExp(index,CHILD3(current));
+		current=current->parentNode;
 		locList=catStmtList(locList,expList);
 		IRStmt *multS=newStmt(_MULT,index,index,USV);
 		IRStmtList *multSL=newStmtList(multS);
@@ -537,8 +557,15 @@ IRStmtList *translateArray(IRVar *retVar,treeNode *node){
 		IRStmtList *addSL=newStmtList(addS);
 		locList=catStmtList(locList,addSL);
 	}
-	IRStmt *AS2=newStmt(_REFE,retVar,t1,NULL);
-	IRStmtList *ASL2=newStmtList(AS2);
-	locList=catStmtList(locList,ASL2);
+	if(assignVar!=NULL){
+		IRStmt *AS2=newStmt(_WMEM,NULL,t1,assignVar);
+		IRStmtList *ASL2=newStmtList(AS2);
+		locList=catStmtList(locList,ASL2);
+	}
+	if(retVar!=NULL){
+		IRStmt *AS2=newStmt(_REFE,retVar,t1,NULL);
+		IRStmtList *ASL2=newStmtList(AS2);
+		locList=catStmtList(locList,ASL2);
+	}
 	return locList;
 }

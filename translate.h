@@ -20,5 +20,5 @@ IRStmtList *translateIf(treeNode *node);
 IRStmtList *translateWhile(treeNode *node);
 IRStmtList *translateCond(treeNode *node,IRVar *Lt,IRVar *Lf);
 IRStmtList *translateArrayDec(treeNode *node);
-IRStmtList *translateArray(IRVar *retVar,treeNode *node);
+IRStmtList *translateArray(IRVar *retVar,IRVar *assignVar,treeNode *node);
 #endif
