@@ -3,6 +3,7 @@
 #include "syntax.tab.h"
 #include "semantics.h"
 #include "translate.h"
+#include "optimize.h"
 
 extern treeNode* root;
 extern int globalErrorFlag;
@@ -27,6 +28,10 @@ int main(int argc,char **argv){
 	if(globalErrorFlag==0){
 		travelNodeRev(root,combineCode);
 	}
+	printCode(head);
+	printf("\nOptimizeInfo:\n");
+	IROptimize(head);
+	printf("\nAfterOptimize:\n");
 	printCode(head);
 	return 0;
 }

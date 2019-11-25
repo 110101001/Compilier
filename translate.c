@@ -88,7 +88,7 @@ IRStmtList *translateFunction(treeNode *node){
 	IRStmtList *list1;
 	IRStmtList *PSL=NULL;
 	IRStmtList *ret;
-	f1=newVaribleIRVar(CHILD1(CHILD2(node))->text);
+	f1=newFunctionIRVar(CHILD1(CHILD2(node))->text);
 	FDS=newStmt(_FUNC,NULL,f1,NULL);
 	FDSL=newStmtList(FDS);
 	list1=translateCompSt(CHILD3(node));
@@ -125,7 +125,7 @@ IRStmtList *translateArgs(treeNode *node){
 }
 
 IRStmtList *translateCall(IRVar *retVar,treeNode *node){
-	IRVar *f1=newVaribleIRVar(CHILD1(node)->text);
+	IRVar *f1=newFunctionIRVar(CHILD1(node)->text);
 	IRStmt *FCS=newStmt(_CALL,retVar,f1,NULL);
 	IRStmtList *FCSL=newStmtList(FCS);
 	IRStmtList *expList=translateArgs(CHILD3(node));

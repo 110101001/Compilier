@@ -11,6 +11,8 @@ varibleItem *paraList[PARA_LEN];
 int paraCount;
 int unimplementedFunctions=0;
 
+int varCount;
+
 void loadParameters(treeNode *node){
 	static int type;
 	if(node->type==Specifier){
@@ -99,7 +101,7 @@ int structInsert(treeNode* node){
 }
 
 void varibleInsert(treeNode *node,int type){
-
+	varCount+=1;
 	int arrayDim=0;
 	treeNode *dec=node;
 	while(CHILD2(dec)!=0){

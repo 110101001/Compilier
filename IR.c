@@ -31,6 +31,14 @@ IRVar *newVaribleIRVar(char *name){
 	newUnit->name =name;
 	return newUnit;
 }
+
+IRVar *newFunctionIRVar(char *name){
+	IRVar *newUnit=malloc(sizeof(IRVar));
+	newUnit->type=FUNCTION;
+	newUnit->name =name;
+	return newUnit;
+}
+
 IRVar *newNumIRVar(int num){
 	IRVar *newUnit=malloc(sizeof(IRVar));
 	newUnit->type=CONSTANT;
@@ -60,6 +68,39 @@ IRStmtList *catStmtList(IRStmtList *list1,IRStmtList *list2){
 	return list1;
 }
 
+void replaceIRVar(IRVar *var,IRVar *newVar,IRStmtList *head){
+	IRStmtList *p=head;
+	while(p!=0){
+		if(p->stmt->target==var){
+			p->stmt->target=newVar;
+		}
+		if(p->stmt->arg1==var){
+			p->stmt->arg1=newVar;
+		}
+		if(p->stmt->arg2==var){
+			p->stmt->arg2=newVar;
+		}
+		p=p->next;
+	}
+}
+
+void delIRVar(IRVar *var,IRStmtList *head){
+	IRStmtList *p=head;
+	while(p!=0&&p->next!=0){
+		if(p->next->stmt->target==var||p->stmt->arg1==var||p->stmt->arg2==var){
+			removeNextStmt(p);
+		}
+		p=p->next;
+	}
+}
+
+IRStmtList *getStmtListByLine(int n,IRStmtList *head){
+	IRStmtList *p=head;
+	for(int i=0;i<n&&p!=0;i++){
+		p=p->next;
+	}
+	return p;
+}
 void removeNextStmt(IRStmtList* current){
 	if(current->next==0){
 		return;
@@ -74,9 +115,12 @@ char *printArg(IRVar *arg){
 	if(arg==NULL){
 		return NULL;
 	}
-	char *strArg=malloc(100*sizeof(char));
+	char *strArg=malloc(20*sizeof(char));
 	switch(arg->type){
 		case VARIABLE:
+			strcp(strArg,arg->name);
+			break;
+		case FUNCTION:
 			strcp(strArg,arg->name);
 			break;
 		case LABEL:
