@@ -23,16 +23,17 @@ int main(int argc,char **argv){
 
 	//generate symboltable
 	if(globalErrorFlag==0){
+		generatePrebuiltFunctions();
 		travelNode(root,loadSymbol);
 	}
 	if(globalErrorFlag==0){
 		travelNodeRev(root,combineCode);
 	}
 	printCode(head);
-	printf("\nOptimizeInfo:\n");
-	IROptimize(head);
+	/*printf("\nOptimizeInfo:\n");
+	head=IROptimize(head);
 	printf("\nAfterOptimize:\n");
-	printCode(head);
+	printCode(head);*/
 	return 0;
 }
 

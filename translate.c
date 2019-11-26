@@ -1,5 +1,6 @@
 #include "translate.h"
 #include "symbolTable.h"
+#include <stdlib.h>
 
 IRStmtList *head;
 
@@ -149,11 +150,20 @@ IRStmtList *translateCall(IRVar *retVar,treeNode *node){
 	}
 	else if(strcm(CHILD1(node)->text,"write")==0){
 		IRStmtList *p=expList;
-		while(p->next!=0){
-			p=p->next;
+		IRVar *writeVar;
+
+		if(p->stmt->type==_ARG){
+			writeVar=p->stmt->arg1;
+			free(expList);
+			expList=NULL;
 		}
-		IRVar *writeVar=p->stmt->arg1;
-		removeNextStmt(p);
+		else{
+			while(p->next->next!=0){
+				p=p->next->next;
+			}
+			writeVar=p->stmt->arg1;
+			removeNextStmt(p);
+		}
 		IRStmt *writeS=newStmt(_WRIT,NULL,writeVar,NULL);
 		IRStmtList *writeSL=newStmtList(writeS);
 		ret=catStmtList(expList,writeSL);
@@ -531,7 +541,7 @@ IRStmtList *translateArrayDec(treeNode *node){
 		size=size*item->arrayLen[i];
 	}
 	IRVar *a1=newVaribleIRVar(CHILD1(dec)->text);
-	IRVar *c1=newNumIRVar(size);
+	IRVar *c1=newSizeIRVar(size);
 	IRStmt *DecS=newStmt(_DEC,a1,c1,NULL);
 	IRStmtList *DecL=newStmtList(DecS);
 	return DecL;

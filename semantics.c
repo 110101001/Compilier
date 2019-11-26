@@ -272,8 +272,17 @@ void loadSymbol(treeNode *node){
 											  errorHandler(11,CHILD1(node)->val);
 											  return;
 										  }
-										  errorHandler(2,CHILD1(node)->val);
-										  return;
+										  treeNode *p=node;
+										  while(p->type!=ExtDef){
+											  p=p->parentNode;
+										  }
+										  if(strcm(CHILD1(CHILD2(p))->text,CHILD1(node)->text)!=0){
+											  errorHandler(2,CHILD1(node)->val);
+											  return;
+										  }
+										  else{
+											  item=functionCreate(p);
+										  }
 									  }
 									  if(item->length!=0){
 										  if(CHILD3(node)->type!=Args){

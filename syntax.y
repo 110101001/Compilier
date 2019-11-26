@@ -234,6 +234,7 @@ Stmt : Exp SEMI{
 		insertNode(node,$4);
 		insertNode(node,$5);
 		insertNode(node,$6);
+		insertNode(node,$7);
 		$$=node;
 		}
 	 | WHILE LP Exp RP Stmt{

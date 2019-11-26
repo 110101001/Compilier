@@ -5,7 +5,7 @@
 #include"symbolTable.h"
 
 typedef struct IRVar{
-	enum {VARIABLE,LABEL,TEMP,CONSTANT,ADDRESS,FUNCTION} type;
+	enum {VARIABLE,LABEL,TEMP,CONSTANT,ADDRESS,FUNCTION,SIZE} type;
 	union{
 		int val;
 		int no;
@@ -23,12 +23,14 @@ typedef struct IRStmt{
 
 typedef struct IRStmtList{
 	IRStmt *stmt;
+	int removeFlag;
 	struct IRStmtList *next;
 }IRStmtList;
 
 IRStmtList *newStmtList(IRStmt *stmt);
 IRStmt *newStmt(int type, IRVar *target,IRVar *arg1,IRVar *arg2);
 IRVar *newTempIRVar();
+IRVar *newSizeIRVar(int n);
 IRVar *newVaribleIRVar(char *name);
 IRVar *newFunctionIRVar(char *name);
 IRVar *newNumIRVar(int num);
@@ -36,7 +38,9 @@ IRVar *newLabelIRVar();
 IRStmtList *catStmtList(IRStmtList *list1,IRStmtList *list2);
 void replaceIRVar(IRVar *var,IRVar *newVar,IRStmtList *head);
 void delIRVar(IRVar *var,IRStmtList *head);
+void removeStmt(IRStmtList* current);
 void removeNextStmt(IRStmtList* current);
+IRStmtList *doRemove(IRStmtList *head);
 IRStmtList *getStmtListByLine(int n,IRStmtList *head);
 char *printArg(IRVar *arg);
 void printCode(IRStmtList *head);

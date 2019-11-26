@@ -2,6 +2,6 @@
 #define _OPTIMIZE_H_
 #include "IR.h"
 
-void IROptimize(IRStmtList *head);
+IRStmtList *IROptimize(IRStmtList *head);
 
 #endif

@@ -5,6 +5,7 @@ int currentLabel;
 
 IRStmtList *newStmtList(IRStmt *stmt){
 	IRStmtList *newUnit=malloc(sizeof(IRStmtList));
+	newUnit->removeFlag=0;
 	newUnit->stmt=stmt;
 	newUnit->next=0;
 	return newUnit;
@@ -42,6 +43,12 @@ IRVar *newFunctionIRVar(char *name){
 IRVar *newNumIRVar(int num){
 	IRVar *newUnit=malloc(sizeof(IRVar));
 	newUnit->type=CONSTANT;
+	newUnit->val=num;
+	return newUnit;
+}
+IRVar *newSizeIRVar(int num){
+	IRVar *newUnit=malloc(sizeof(IRVar));
+	newUnit->type=SIZE;
 	newUnit->val=num;
 	return newUnit;
 }
@@ -86,9 +93,9 @@ void replaceIRVar(IRVar *var,IRVar *newVar,IRStmtList *head){
 
 void delIRVar(IRVar *var,IRStmtList *head){
 	IRStmtList *p=head;
-	while(p!=0&&p->next!=0){
-		if(p->next->stmt->target==var||p->stmt->arg1==var||p->stmt->arg2==var){
-			removeNextStmt(p);
+	while(p!=0){
+		if(p->stmt->target==var||p->stmt->arg1==var||p->stmt->arg2==var){
+			removeStmt(p);
 		}
 		p=p->next;
 	}
@@ -100,6 +107,27 @@ IRStmtList *getStmtListByLine(int n,IRStmtList *head){
 		p=p->next;
 	}
 	return p;
+}
+void removeStmt(IRStmtList* current){
+	current->removeFlag=1;
+	return;
+}
+
+IRStmtList *doRemove(IRStmtList *head){
+	IRStmtList *newHead=head;
+	while(newHead->removeFlag==1&&newHead!=0){
+		IRStmtList *temp=newHead->next;
+		free(newHead);
+		newHead=temp;
+	}
+	IRStmtList *p=newHead;
+	while(p!=0&&p->next!=0){
+		if(p->next->removeFlag==1){
+			removeNextStmt(p);
+		}
+		p=p->next;
+	}
+	return newHead;
 }
 void removeNextStmt(IRStmtList* current){
 	if(current->next==0){
@@ -127,10 +155,13 @@ char *printArg(IRVar *arg){
 			sprintf(strArg,"L%d",arg->no);
 			break;
 		case TEMP:
-			sprintf(strArg,"_T%d",arg->no);
+			sprintf(strArg,"T%d",arg->no);
 			break;
 		case CONSTANT:
 			sprintf(strArg,"#%d",arg->val);
+			break;
+		case SIZE:
+			sprintf(strArg,"%d",arg->val);
 			break;
 	}
 	return strArg;

@@ -53,4 +53,6 @@ functionItem *functionCreate(treeNode *node);
 int structSearch(char *name);
 
 structItem *structGet(int type);
+
+void generatePrebuiltFunctions();
 #endif

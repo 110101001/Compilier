@@ -242,5 +242,38 @@ functionItem *functionSearch(char *name){
 	return 0;
 }
 
-generatePrebuiltFunctions(){
+void generatePrebuiltFunctions(){
+	char *strRead,*strWrite;
+	strRead=malloc(5*sizeof(char));
+	strWrite=malloc(6*sizeof(char));
+	strcp(strRead,"read");
+	strcp(strWrite,"write");
+	functionItem *readItem=malloc(sizeof(functionItem));
+	readItem->name=strRead;
+	readItem->implemented=1;
+	readItem->returnType=_int;
+	readItem->length=0;
+	readItem->parameters=NULL;
+	unsigned int pos=hash_pjw(strRead);
+	while(funcTable[pos]!=0){
+		pos++;
+		pos%=TABLE_LEN;
+	}
+	funcTable[pos]=readItem;
+	
+	functionItem *writeItem=malloc(sizeof(functionItem));
+	writeItem->name=strWrite;
+	writeItem->implemented=1;
+	writeItem->returnType=_int;
+	writeItem->length=1;
+	writeItem->parameters=malloc(sizeof(varibleItem *));
+	writeItem->parameters[0]=malloc(sizeof(varibleItem));
+	writeItem->parameters[0]->type=_int;
+	writeItem->parameters[0]->arrayDim=0;
+	pos=hash_pjw(strWrite);
+	while(funcTable[pos]!=0){
+		pos++;
+		pos%=TABLE_LEN;
+	}
+	funcTable[pos]=writeItem;
 }
