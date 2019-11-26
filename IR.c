@@ -198,22 +198,22 @@ void printLine(IRStmt *stmt){
 			sprintf(str,"WRITE %s",arg1);
 			break;
 		case _IFL:
-			sprintf(str,"if %s>%s GOTO %s",arg1,arg2,target);
+			sprintf(str,"IF %s > %s GOTO %s",arg1,arg2,target);
 			break;
 		case _IFLE:
-			sprintf(str,"if %s>=%s GOTO %s",arg1,arg2,target);
+			sprintf(str,"IF %s >= %s GOTO %s",arg1,arg2,target);
 			break;
 		case _IFE:
-			sprintf(str,"if %s==%s GOTO %s",arg1,arg2,target);
+			sprintf(str,"IF %s == %s GOTO %s",arg1,arg2,target);
 			break;
 		case _IFNE:
-			sprintf(str,"if %s!=%s GOTO %s",arg1,arg2,target);
+			sprintf(str,"IF %s != %s GOTO %s",arg1,arg2,target);
 			break;
 		case _IFS:
-			sprintf(str,"if %s<%s GOTO %s",arg1,arg2,target);
+			sprintf(str,"IF %s < %s GOTO %s",arg1,arg2,target);
 			break;
 		case _IFSE:
-			sprintf(str,"if %s<=%s GOTO %s",arg1,arg2,target);
+			sprintf(str,"IF %s <= %s GOTO %s",arg1,arg2,target);
 			break;
 
 

@@ -96,8 +96,17 @@ IRStmtList *translateFunction(treeNode *node){
 	functionItem *item=functionSearch(f1->name);
 	for(int i=0;i<item->length;i++){
 		IRVar *v1=newVaribleIRVar(item->parameters[i]->name);
-		IRStmt *PS=newStmt(_PARA,v1,NULL,NULL);
-		PSL=catStmtList(PSL,newStmtList(PS));
+		if(item->parameters[i]->arrayDim==0){
+			IRStmt *PS=newStmt(_PARA,v1,NULL,NULL);
+			PSL=catStmtList(PSL,newStmtList(PS));	
+		}
+		else{
+			IRVar *aaddr=newTempIRVar();
+			IRStmt *PS=newStmt(_PARA,aaddr,NULL,NULL);
+			IRStmt *GAS=newStmt(_REFE,v1,aaddr,NULL);
+			PSL=catStmtList(PSL,newStmtList(PS));
+			PSL=catStmtList(PSL,newStmtList(GAS));
+		}
 	}
 	ret=catStmtList(FDSL,PSL);
 	ret=catStmtList(ret,list1);
@@ -113,6 +122,9 @@ IRStmtList *translateArgs(treeNode *node){
 		while(1){
 			IRVar *argVar=newTempIRVar();
 			argExps=catStmtList(argExps,translateExp(argVar,CHILD1(present)));
+			if(CHILD1(present)->sys->ExpDim!=0){
+				argExps=catStmtList(argExps,newStmtList(newStmt(_ADDR,argVar,argVar,NULL)));
+			}
 			args=catStmtList(args,newStmtList(newStmt(_ARG,NULL,argVar,NULL)));
 			if(CHILD2(present)==0){
 				break;

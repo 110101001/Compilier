@@ -19,7 +19,7 @@ int findVar(IRVar *var){
 void IROptimize(IRStmtList *head){
 	int *lastUse=malloc(sizeof(int)*(currentNo+varCount));
 	int *lastChange=malloc(sizeof(int)*(currentNo+varCount));
-	IRVar **lastAssigned=malloc(sizeof(IRVar *)*(currentNo+varCount));
+	IRVar **lastAssigned=calloc(currentNo+varCount,sizeof(IRVar *));
 	Self=malloc(sizeof(IRVar *)*(currentNo+varCount));
 	int line=0;
 	IRStmtList *p=head;
@@ -58,7 +58,7 @@ void IROptimize(IRStmtList *head){
 	for(int i=0;i<currentCount;i++){
 		char *str;
 		str=printArg(Self[i]);
-		printf("%s:,last use:%d,last change:%d\n",str,lastUse[i],lastChange[i]);
+		printf("%s:last use:%d,last change:%d\n",str,lastUse[i],lastChange[i]);
 		free(str);
 		if(lastUse[i]==0){
 			printf("Can delete\n");	
