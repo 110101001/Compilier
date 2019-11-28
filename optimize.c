@@ -4,6 +4,7 @@
 
 extern int currentNo;
 extern int varCount;
+extern int currentLabel;
 int currentCount;
 IRVar **Self;
 
@@ -15,7 +16,7 @@ int findVar(IRVar *var){
 	}
 	return -1;
 }
-//代码执行的顺序可能和它本身的顺序毫无关系，因此试图仅靠变量在代码中的位置来确定是否可以用一个变量替代另一个变量以期省略一个赋值语句的操作是必定存在隐患的。
+//代码执行的顺序可能和它本身的顺序毫无关系，因此试图仅靠变量在代码中的位置来确定是否可以用一个变量替代另一个变量以期省略一个赋值语句的操作是必定存在隐患的。因此，防止变量冗余的操作放在translater里头。
 IRStmtList *IROptimize(IRStmtList *head){
 	int changedFlag=1;
 	while(changedFlag==1){
@@ -40,6 +41,9 @@ IRStmtList *IROptimize(IRStmtList *head){
 					lastAssigned[no]=p->stmt->arg1;
 				}
 				lastChange[no]=line;
+				if(p->stmt->type==_CALL){
+					lastUse[no]=line;
+				}
 				if(firstChange[no]==0){
 					firstChange[no]=line;
 				}
@@ -69,7 +73,7 @@ IRStmtList *IROptimize(IRStmtList *head){
 			line++;
 			p=p->next;
 		}
-		for(int i=0;i<currentCount;i++){
+		for(int i=0;i<currentCount;i++){//Delete unused var
 			//char *str,*str2;
 			//str=printArg(Self[i]);
 			//printf("%s:last use:%d,last change:%d\n",str,lastUse[i],lastChange[i]);
@@ -79,23 +83,74 @@ IRStmtList *IROptimize(IRStmtList *head){
 				//printf("Deleted stmt about %s\n",str);
 			}
 			/*if(lastAssigned[i]!=0){
-				if(lastAssigned[i]->type==CONSTANT){
-					IRVar *dupVar=lastAssigned[i];
-					str2=printArg(dupVar);
-					IRStmtList *p;
-					p=getStmtListByLine(lastChange[i],head);
-					if(p->stmt->type==_ASSI){
-						replaceIRVar(Self[i],dupVar,p);
-						removeStmt(p);
-						printf("Remove line ");
-						printLine(p->stmt);
-						printf("Merge %s with %s\n",str,str2);	
-						changedFlag=1;
-					}
-					free(str2);
-				}
-			}*/
+			  if(lastAssigned[i]->type==CONSTANT){
+			  IRVar *dupVar=lastAssigned[i];
+			  str2=printArg(dupVar);
+			  IRStmtList *p;
+			  p=getStmtListByLine(lastChange[i],head);
+			  if(p->stmt->type==_ASSI){
+			  replaceIRVar(Self[i],dupVar,p);
+			  removeStmt(p);
+			  printf("Remove line ");
+			  printLine(p->stmt);
+			  printf("Merge %s with %s\n",str,str2);	
+			  changedFlag=1;
+			  }
+			  free(str2);
+			  }
+			  }*/
 			//free(str);
+		}
+
+		int *used=calloc(currentLabel,sizeof(int));
+		p=head;
+		while(p!=0){
+			if(p->stmt->type==_GOTO||
+					(p->stmt->type>=_IFL&&p->stmt->type<=_IFNE)
+					){//count label use
+				used[p->stmt->target->no]+=1;
+			}
+			if(p->stmt->type==_RETU&&
+					p->next!=0&&
+					(p->next->stmt->type!=_FUNC&&
+					 p->next->stmt->type!=_LABE)
+			  ){//Delete instr after return
+				removeStmt(p->next);
+				if(p->stmt->type==_GOTO){
+					used[p->stmt->target->no]-=1;
+				}
+				changedFlag=1;
+			}
+			if(p->stmt->type==_GOTO&&
+					p->next!=0&&
+					p->next->stmt->type==_LABE&&
+					cmpIRVar(p->stmt->target,p->next->stmt->arg1)
+			  ){//Delete goto which goes to next instr
+				removeStmt(p);
+				used[p->stmt->target->no]-=1;
+				changedFlag=1;
+			}
+			if(p->stmt->type==_LABE&&
+					p->next!=0&&
+					p->next->stmt->type==_LABE&&
+					cmpIRVar(p->stmt->arg1,p->next->stmt->arg1)==0
+			  ){//Merge two labels
+				replaceIRVar(p->stmt->arg1,p->next->stmt->arg1,head);	
+				used[p->next->stmt->arg1->no]+=used[p->stmt->arg1->no];
+				removeStmt(p);
+				changedFlag=1;
+			}
+			p=p->next;
+		}
+		p=head;
+		while(p!=0){
+			if(p->stmt->type==_LABE&&
+				used[p->stmt->arg1->no]==0
+			  ){
+				removeStmt(p);
+				changedFlag=1;
+			}
+			p=p->next;
 		}
 		head=doRemove(head);
 	}

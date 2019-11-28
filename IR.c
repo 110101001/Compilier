@@ -109,7 +109,10 @@ void replaceIRVar(IRVar *var,IRVar *newVar,IRStmtList *head){
 void delIRVar(IRVar *var,IRStmtList *head){
 	IRStmtList *p=head;
 	while(p!=0){
-		if(cmpIRVar(p->stmt->target,var)||cmpIRVar(p->stmt->arg1,var)||cmpIRVar(p->stmt->arg2,var)){
+		if(cmpIRVar(p->stmt->target,var)&&p->stmt->type!=_CALL){
+			removeStmt(p);
+		}
+		else if(cmpIRVar(p->stmt->arg1,var)||cmpIRVar(p->stmt->arg2,var)){
 			removeStmt(p);
 		}
 		p=p->next;

@@ -8,6 +8,7 @@
 extern treeNode* root;
 extern int globalErrorFlag;
 extern IRStmtList *head;
+extern structNode *structHead;
 void printInfo(treeNode *node);
 
 int main(int argc,char **argv){
@@ -25,13 +26,17 @@ int main(int argc,char **argv){
 	if(globalErrorFlag==0){
 		generatePrebuiltFunctions();
 		travelNode(root,loadSymbol);
+		if(structHead!=0){
+			printf("Cannot translate: Detected use of struct\n");
+			globalErrorFlag=1;
+		}
 	}
 	if(globalErrorFlag==0){
 		travelNodeRev(root,combineCode);
 	}
 	//printCode(head);
 	//printf("\nOptimizeInfo:\n");
-	//head=IROptimize(head);
+	head=IROptimize(head);
 	//printf("\nAfterOptimize:\n");
 	printCode(head);
 	return 0;
