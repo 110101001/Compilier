@@ -60,6 +60,21 @@ IRVar *newLabelIRVar(){
 	return newUnit;
 }
 
+int cmpIRVar(IRVar *a,IRVar *b){
+	if(a==NULL||b==NULL){
+		return 0;
+	}
+	if(a->type==b->type){
+		if(a->val==b->val){
+			return 1;
+		}
+		else if(a->type==VARIABLE&&(strcm(a->name,b->name)==0)){
+			return 1;
+		}
+	}
+	return 0;
+}
+
 IRStmtList *catStmtList(IRStmtList *list1,IRStmtList *list2){
 	IRStmtList *p1=list1;
 	if(list1==NULL){
@@ -78,13 +93,13 @@ IRStmtList *catStmtList(IRStmtList *list1,IRStmtList *list2){
 void replaceIRVar(IRVar *var,IRVar *newVar,IRStmtList *head){
 	IRStmtList *p=head;
 	while(p!=0){
-		if(p->stmt->target==var){
+		if(cmpIRVar(p->stmt->target,var)){
 			p->stmt->target=newVar;
 		}
-		if(p->stmt->arg1==var){
+		if(cmpIRVar(p->stmt->arg1,var)){
 			p->stmt->arg1=newVar;
 		}
-		if(p->stmt->arg2==var){
+		if(cmpIRVar(p->stmt->arg2,var)){
 			p->stmt->arg2=newVar;
 		}
 		p=p->next;
@@ -94,7 +109,7 @@ void replaceIRVar(IRVar *var,IRVar *newVar,IRStmtList *head){
 void delIRVar(IRVar *var,IRStmtList *head){
 	IRStmtList *p=head;
 	while(p!=0){
-		if(p->stmt->target==var||p->stmt->arg1==var||p->stmt->arg2==var){
+		if(cmpIRVar(p->stmt->target,var)||cmpIRVar(p->stmt->arg1,var)||cmpIRVar(p->stmt->arg2,var)){
 			removeStmt(p);
 		}
 		p=p->next;
@@ -113,9 +128,22 @@ void removeStmt(IRStmtList* current){
 	return;
 }
 
+int examLabelGoto(int start,int end,IRStmtList *head){
+	IRStmtList *p=getStmtListByLine(start,head);
+	for(int i=0;i<end-start&&p!=0;i++){
+		if(
+				p->stmt->type==_GOTO||
+				p->stmt->type==_LABE||
+				(p->stmt->type>=_IFL&&p->stmt->type<=_IFNE)
+		  ){
+			return 1;
+		}
+	}
+	return 0;
+}
 IRStmtList *doRemove(IRStmtList *head){
 	IRStmtList *newHead=head;
-	while(newHead->removeFlag==1&&newHead!=0){
+	while(newHead!=0&&newHead->removeFlag==1){
 		IRStmtList *temp=newHead->next;
 		free(newHead);
 		newHead=temp;
@@ -125,7 +153,9 @@ IRStmtList *doRemove(IRStmtList *head){
 		if(p->next->removeFlag==1){
 			removeNextStmt(p);
 		}
-		p=p->next;
+		else{
+			p=p->next;
+		}
 	}
 	return newHead;
 }

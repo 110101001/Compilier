@@ -1,0 +1,198 @@
+$end	syntax.output	/^$end (0) 0$/
+.PHONY	Makefile	/^.PHONY: clean test$/
+Args	syntax.y	417
+CHILD1	grammerTree.h	/^#define CHILD1(node) ((node)->children)$/
+CHILD2	grammerTree.h	/^#define CHILD2(node) ((node)->children->next)$/
+CHILD3	grammerTree.h	/^#define CHILD3(node) ((node)->children->next->next/
+CHILD4	grammerTree.h	/^#define CHILD4(node) ((node)->children->next->next/
+CHILD5	grammerTree.h	/^#define CHILD5(node) ((node)->children->next->next/
+CHILD7	grammerTree.h	/^#define CHILD7(node) ((node)->children->next->next/
+CompSt	syntax.y	182
+Dec	syntax.y	283
+DecList	syntax.y	269
+DecListHandler	semantics.c	/^void DecListHandler(treeNode *node){$/
+Def	syntax.y	261
+DefList	syntax.y	251
+Exp	syntax.y	296
+ExtDecList	syntax.y	76
+ExtDef	syntax.y	48
+ExtDefList	syntax.y	38
+FunDec	syntax.y	146
+IROptimize	optimize.c	/^IRStmtList *IROptimize(IRStmtList *head){$/
+Mmain	main.c	/^int main(int argc,char **argv){$/
+NonTerminalOutput	main.c	/^void NonTerminalOutput(treeNode *node){$/
+OptTag	syntax.y	116
+ParamDec	syntax.y	175
+Program	syntax.y	31
+Specifier	syntax.y	89
+Stmt	syntax.y	202
+StmtList	syntax.y	192
+StructSpecifier	syntax.y	100
+SymbolOutput	main.c	/^void SymbolOutput(treeNode *node){$/
+Tag	syntax.y	126
+VarDec	syntax.y	132
+VarList	syntax.y	162
+YYBACKUP	syntax.tab.c	/^#define YYBACKUP(Token, Value)                    /
+YYCASE_	syntax.tab.c	/^# define YYCASE_(N, S)                      \\$/
+YYCOPY	syntax.tab.c	/^#   define YYCOPY(Dst, Src, Count) \\$/
+YYCOPY	syntax.tab.c	/^#   define YYCOPY(Dst, Src, Count)              \\$/
+YYDPRINTF	syntax.tab.c	/^# define YYDPRINTF(Args)                        \\$/
+YYDPRINTF	syntax.tab.c	/^# define YYDPRINTF(Args)$/
+YYLLOC_DEFAULT	syntax.tab.c	/^# define YYLLOC_DEFAULT(Current, Rhs, N)          /
+YYPOPSTACK	syntax.tab.c	/^#define YYPOPSTACK(N)   (yyvsp -= (N), yyssp -= (N/
+YYRECOVERING	syntax.tab.c	/^#define YYRECOVERING()  (!!yyerrstatus)$/
+YYRHSLOC	syntax.tab.c	/^#define YYRHSLOC(Rhs, K) ((Rhs)[K])$/
+YYSTACK_BYTES	syntax.tab.c	/^# define YYSTACK_BYTES(N) \\$/
+YYSTACK_FREE	syntax.tab.c	/^#  define YYSTACK_FREE(Ptr) do { \/* empty *\/; } wh/
+YYSTACK_RELOCATE	syntax.tab.c	/^# define YYSTACK_RELOCATE(Stack_alloc, Stack)     /
+YYTRANSLATE	syntax.tab.c	/^#define YYTRANSLATE(YYX)                          /
+YYUSE	syntax.tab.c	/^# define YYUSE(E) ((void) (E))$/
+YYUSE	syntax.tab.c	/^# define YYUSE(E) \/* empty *\/$/
+YY_	syntax.tab.c	/^#   define YY_(Msgid) dgettext ("bison-runtime", M/
+YY_	syntax.tab.c	/^#  define YY_(Msgid) Msgid$/
+YY_ATTRIBUTE	syntax.tab.c	/^#  define YY_ATTRIBUTE(Spec) __attribute__(Spec)$/
+YY_ATTRIBUTE	syntax.tab.c	/^#  define YY_ATTRIBUTE(Spec) \/* empty *\/$/
+YY_AT_BOL	lex.yy.c	/^#define YY_AT_BOL() (YY_CURRENT_BUFFER_LVALUE->yy_/
+YY_FATAL_ERROR	lex.yy.c	/^#define YY_FATAL_ERROR(msg) yy_fatal_error( msg )$/
+YY_INITIAL_VALUE	syntax.tab.c	/^# define YY_INITIAL_VALUE(Value) Value$/
+YY_INITIAL_VALUE	syntax.tab.c	/^# define YY_INITIAL_VALUE(Value) \/* Nothing. *\/$/
+YY_INPUT	lex.yy.c	/^#define YY_INPUT(buf,result,max_size) \\$/
+YY_LESS_LINENO	lex.yy.c	/^    #define  YY_LESS_LINENO(n) \\$/
+YY_LINENO_REWIND_TO	lex.yy.c	/^    #define YY_LINENO_REWIND_TO(dst) \\$/
+YY_LOCATION_PRINT	syntax.tab.c	/^#  define YY_LOCATION_PRINT(File, Loc)          \\$/
+YY_LOCATION_PRINT	syntax.tab.c	/^#  define YY_LOCATION_PRINT(File, Loc) ((void) 0)$/
+YY_REDUCE_PRINT	syntax.tab.c	/^# define YY_REDUCE_PRINT(Rule)          \\$/
+YY_REDUCE_PRINT	syntax.tab.c	/^# define YY_REDUCE_PRINT(Rule)$/
+YY_SC_TO_UI	lex.yy.c	/^#define YY_SC_TO_UI(c) ((YY_CHAR) (c))$/
+YY_STACK_PRINT	syntax.tab.c	/^# define YY_STACK_PRINT(Bottom, Top)              /
+YY_STACK_PRINT	syntax.tab.c	/^# define YY_STACK_PRINT(Bottom, Top)$/
+YY_STATE_EOF	lex.yy.c	/^#define YY_STATE_EOF(state) (YY_END_OF_BUFFER + st/
+YY_SYMBOL_PRINT	syntax.tab.c	/^# define YY_SYMBOL_PRINT(Title, Type, Value, Locat/
+YY_SYMBOL_PRINT	syntax.tab.c	/^# define YY_SYMBOL_PRINT(Title, Type, Value, Locat/
+catStmtList	IR.c	/^IRStmtList *catStmtList(IRStmtList *list1,IRStmtLi/
+checkExpError	semantics.c	/^int checkExpError(treeNode *node){$/
+clean	Makefile	/^clean:$/
+cmpIRVar	IR.c	/^int cmpIRVar(IRVar *a,IRVar *b){$/
+combineCode	translate.c	/^void combineCode(treeNode *node){$/
+delIRVar	IR.c	/^void delIRVar(IRVar *var,IRStmtList *head){$/
+doRemove	IR.c	/^IRStmtList *doRemove(IRStmtList *head){$/
+errorHandler	semantics.c	/^void errorHandler(int type,int line){$/
+findVar	optimize.c	/^int findVar(IRVar *var){$/
+functionCreate	symbolTable.c	/^functionItem *functionCreate(treeNode *node){$/
+functionInsert	symbolTable.c	/^void functionInsert(treeNode *node){$/
+functionSearch	symbolTable.c	/^functionItem *functionSearch(char *name){$/
+generatePrebuiltFunctions	symbolTable.c	/^void generatePrebuiltFunctions(){$/
+getStmtListByLine	IR.c	/^IRStmtList *getStmtListByLine(int n,IRStmtList *he/
+hash_pjw	symbolTable.c	/^unsigned int hash_pjw(char *name){$/
+insertNode	grammerTree.c	/^void insertNode(treeNode* pnode,treeNode* cnode){$/
+lexical	Makefile	/^lexical: $(LFILE)$/
+loadParameters	symbolTable.c	/^void loadParameters(treeNode *node){$/
+loadSymbol	semantics.c	/^void loadSymbol(treeNode *node){$/
+newFloatNode	grammerTree.c	/^treeNode* newFloatNode(int type,float val,int genC/
+newFunctionIRVar	IR.c	/^IRVar *newFunctionIRVar(char *name){$/
+newLabelIRVar	IR.c	/^IRVar *newLabelIRVar(){$/
+newNode	grammerTree.c	/^treeNode* newNode(int type,int val,int genCount){$/
+newNumIRVar	IR.c	/^IRVar *newNumIRVar(int num){$/
+newSizeIRVar	IR.c	/^IRVar *newSizeIRVar(int num){$/
+newStmt	IR.c	/^IRStmt *newStmt(int type, IRVar *target,IRVar *arg/
+newStmtList	IR.c	/^IRStmtList *newStmtList(IRStmt *stmt){$/
+newTempIRVar	IR.c	/^IRVar *newTempIRVar(){$/
+newVaribleIRVar	IR.c	/^IRVar *newVaribleIRVar(char *name){$/
+parser	Makefile	/^parser: syntax $(filter-out $(LFO),$(OBJS))$/
+printArg	IR.c	/^char *printArg(IRVar *arg){$/
+printCode	IR.c	/^void printCode(IRStmtList *head){$/
+printInfo	main.c	/^void printInfo(treeNode *node,int depth){$/
+printLine	IR.c	/^void printLine(IRStmt *stmt){$/
+removeNextStmt	IR.c	/^void removeNextStmt(IRStmtList* current){$/
+removeStmt	IR.c	/^void removeStmt(IRStmtList* current){$/
+replaceIRVar	IR.c	/^void replaceIRVar(IRVar *var,IRVar *newVar,IRStmtL/
+searchField	symbolTable.c	/^varibleItem *searchField(structItem *item,char *na/
+specifierRead	semantics.c	/^int specifierRead(treeNode *node){$/
+strcm	grammerTree.c	/^int strcm(char *a,char *b){$/
+strcp	grammerTree.c	/^void strcp(char *a,char *b){$/
+structGet	symbolTable.c	/^structItem *structGet(int type){$/
+structInsert	symbolTable.c	/^int structInsert(treeNode* node){$/
+structSearch	symbolTable.c	/^int structSearch(char *name){$/
+syntax	Makefile	/^syntax: lexical syntax-c$/
+syntax-c	Makefile	/^syntax-c: $(YFILE)$/
+test	Makefile	/^test:$/
+translate	translate.c	/^IRStmtList *translate(treeNode *node){$/
+translateArgs	translate.c	/^IRStmtList *translateArgs(treeNode *node){$/
+translateArray	translate.c	/^IRStmtList *translateArray(IRVar *retVar,IRVar *as/
+translateArrayDec	translate.c	/^IRStmtList *translateArrayDec(treeNode *node){$/
+translateCall	translate.c	/^IRStmtList *translateCall(IRVar *retVar,treeNode */
+translateCompSt	translate.c	/^IRStmtList *translateCompSt(treeNode *node){$/
+translateCond	translate.c	/^IRStmtList *translateCond(treeNode *node,IRVar *Lt/
+translateDec	translate.c	/^IRStmtList *translateDec(treeNode *node){$/
+translateDefList	translate.c	/^IRStmtList *translateDefList(treeNode *node){$/
+translateExp	translate.c	/^IRStmtList *translateExp(IRVar *retVar,treeNode *n/
+translateExpStmt	translate.c	/^IRStmtList *translateExpStmt(treeNode *node){$/
+translateExtDef	translate.c	/^IRStmtList *translateExtDef(treeNode *node){$/
+translateFunction	translate.c	/^IRStmtList *translateFunction(treeNode *node){$/
+translateIf	translate.c	/^IRStmtList *translateIf(treeNode *node){$/
+translateReturn	translate.c	/^IRStmtList *translateReturn(treeNode *node){$/
+translateStmt	translate.c	/^IRStmtList *translateStmt(treeNode *node){$/
+translateStmtList	translate.c	/^IRStmtList *translateStmtList(treeNode *node){$/
+translateWhile	translate.c	/^IRStmtList *translateWhile(treeNode *node){$/
+travelNode	grammerTree.c	/^void travelNode(treeNode* root,void (*action)(tree/
+travelNodeRev	grammerTree.c	/^void travelNodeRev(treeNode* root,void (*action)(t/
+unput	lex.yy.c	/^#define unput(c) yyunput( c, (yytext_ptr)  )$/
+varOutput	main.c	/^void varOutput(treeNode *node){$/
+varibleInsert	symbolTable.c	/^void varibleInsert(treeNode *node,int type){$/
+varibleSearch	symbolTable.c	/^varibleItem *varibleSearch(char *name){$/
+yy_create_buffer	lex.yy.c	/^    YY_BUFFER_STATE yy_create_buffer  (FILE * file/
+yy_delete_buffer	lex.yy.c	/^    void yy_delete_buffer (YY_BUFFER_STATE  b )$/
+yy_fatal_error	lex.yy.c	/^static void yynoreturn yy_fatal_error (const char*/
+yy_flex_strlen	lex.yy.c	/^static int yy_flex_strlen (const char * s )$/
+yy_flex_strncpy	lex.yy.c	/^static void yy_flex_strncpy (char* s1, const char /
+yy_flush_buffer	lex.yy.c	/^    void yy_flush_buffer (YY_BUFFER_STATE  b )$/
+yy_get_next_buffer	lex.yy.c	/^static int yy_get_next_buffer (void)$/
+yy_get_previous_state	lex.yy.c	/^    static yy_state_type yy_get_previous_state (vo/
+yy_init_buffer	lex.yy.c	/^    static void yy_init_buffer  (YY_BUFFER_STATE  /
+yy_init_globals	lex.yy.c	/^static int yy_init_globals (void)$/
+yy_load_buffer_state	lex.yy.c	/^static void yy_load_buffer_state  (void)$/
+yy_location_print_	syntax.tab.c	/^yy_location_print_ (FILE *yyo, YYLTYPE const * con/
+yy_reduce_print	syntax.tab.c	/^yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyv/
+yy_scan_buffer	lex.yy.c	/^YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_s/
+yy_scan_bytes	lex.yy.c	/^YY_BUFFER_STATE yy_scan_bytes  (const char * yybyt/
+yy_scan_string	lex.yy.c	/^YY_BUFFER_STATE yy_scan_string (const char * yystr/
+yy_set_bol	lex.yy.c	/^#define yy_set_bol(at_bol) \\$/
+yy_set_interactive	lex.yy.c	/^#define yy_set_interactive(is_interactive) \\$/
+yy_stack_print	syntax.tab.c	/^yy_stack_print (yytype_int16 *yybottom, yytype_int/
+yy_switch_to_buffer	lex.yy.c	/^    void yy_switch_to_buffer  (YY_BUFFER_STATE  ne/
+yy_symbol_print	syntax.tab.c	/^yy_symbol_print (FILE *yyoutput, int yytype, YYSTY/
+yy_symbol_value_print	syntax.tab.c	/^yy_symbol_value_print (FILE *yyoutput, int yytype,/
+yy_try_NUL_trans	lex.yy.c	/^    static yy_state_type yy_try_NUL_trans  (yy_sta/
+yyalloc	lex.yy.c	/^void *yyalloc (yy_size_t  size )$/
+yydestruct	syntax.tab.c	/^yydestruct (const char *yymsg, int yytype, YYSTYPE/
+yyensure_buffer_stack	lex.yy.c	/^static void yyensure_buffer_stack (void)$/
+yyerror	syntax.y	/^void yyerror(char *msg){$/
+yyfree	lex.yy.c	/^void yyfree (void * ptr )$/
+yyget_debug	lex.yy.c	/^int yyget_debug  (void)$/
+yyget_in	lex.yy.c	/^FILE *yyget_in  (void)$/
+yyget_leng	lex.yy.c	/^int yyget_leng  (void)$/
+yyget_lineno	lex.yy.c	/^int yyget_lineno  (void)$/
+yyget_out	lex.yy.c	/^FILE *yyget_out  (void)$/
+yyget_text	lex.yy.c	/^char *yyget_text  (void)$/
+yyinput	lex.yy.c	/^    static int yyinput (void)$/
+yyless	lex.yy.c	/^#define yyless(n) \\$/
+yyless	lex.yy.c	/^#define yyless(n) \\$/
+yylex_destroy	lex.yy.c	/^int yylex_destroy  (void)$/
+yymore	lex.yy.c	/^#define yymore() yymore_used_but_not_detected$/
+yypact_value_is_default	syntax.tab.c	/^#define yypact_value_is_default(Yystate) \\$/
+yyparse	syntax.tab.c	/^yyparse (void)$/
+yypop_buffer_state	lex.yy.c	/^void yypop_buffer_state (void)$/
+yypush_buffer_state	lex.yy.c	/^void yypush_buffer_state (YY_BUFFER_STATE new_buff/
+yyrealloc	lex.yy.c	/^void *yyrealloc  (void * ptr, yy_size_t  size )$/
+yyrestart	lex.yy.c	/^    void yyrestart  (FILE * input_file )$/
+yyset_debug	lex.yy.c	/^void yyset_debug (int  _bdebug )$/
+yyset_in	lex.yy.c	/^void yyset_in (FILE *  _in_str )$/
+yyset_lineno	lex.yy.c	/^void yyset_lineno (int  _line_number )$/
+yyset_out	lex.yy.c	/^void yyset_out (FILE *  _out_str )$/
+yystpcpy	syntax.tab.c	/^yystpcpy (char *yydest, const char *yysrc)$/
+yystrlen	syntax.tab.c	/^yystrlen (const char *yystr)$/
+yysyntax_error	syntax.tab.c	/^yysyntax_error (YYSIZE_T *yymsg_alloc, char **yyms/
+yytable_value_is_error	syntax.tab.c	/^#define yytable_value_is_error(Yytable_value) \\$/
+yyterminate	lex.yy.c	/^#define yyterminate() return YY_NULL$/
+yytnamerr	syntax.tab.c	/^yytnamerr (char *yyres, const char *yystr)$/
+yyunput	lex.yy.c	/^    static void yyunput (int c, char * yy_bp )$/

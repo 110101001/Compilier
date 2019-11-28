@@ -35,6 +35,7 @@ IRVar *newVaribleIRVar(char *name);
 IRVar *newFunctionIRVar(char *name);
 IRVar *newNumIRVar(int num);
 IRVar *newLabelIRVar();
+int cmpIRVar(IRVar *a,IRVar *b);
 IRStmtList *catStmtList(IRStmtList *list1,IRStmtList *list2);
 void replaceIRVar(IRVar *var,IRVar *newVar,IRStmtList *head);
 void delIRVar(IRVar *var,IRStmtList *head);
@@ -43,6 +44,7 @@ void removeNextStmt(IRStmtList* current);
 IRStmtList *doRemove(IRStmtList *head);
 IRStmtList *getStmtListByLine(int n,IRStmtList *head);
 char *printArg(IRVar *arg);
+void printLine(IRStmt *stmt);
 void printCode(IRStmtList *head);
 
 #endif

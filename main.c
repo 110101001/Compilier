@@ -8,7 +8,7 @@
 extern treeNode* root;
 extern int globalErrorFlag;
 extern IRStmtList *head;
-void printInfo(treeNode *node,int depth);
+void printInfo(treeNode *node);
 
 int main(int argc,char **argv){
 	globalErrorFlag=0;
@@ -29,11 +29,11 @@ int main(int argc,char **argv){
 	if(globalErrorFlag==0){
 		travelNodeRev(root,combineCode);
 	}
+	//printCode(head);
+	//printf("\nOptimizeInfo:\n");
+	//head=IROptimize(head);
+	//printf("\nAfterOptimize:\n");
 	printCode(head);
-	/*printf("\nOptimizeInfo:\n");
-	head=IROptimize(head);
-	printf("\nAfterOptimize:\n");
-	printCode(head);*/
 	return 0;
 }
 
@@ -153,10 +153,7 @@ void varOutput(treeNode *node){
 	}	
 }
 
-void printInfo(treeNode *node,int depth){
-	for(int i=0;i<depth;i++){
-		printf("  ");
-	}
+void printInfo(treeNode *node){
 	NonTerminalOutput(node);
 	SymbolOutput(node);
 	varOutput(node);
