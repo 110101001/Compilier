@@ -119,7 +119,7 @@ IRStmtList *translateFunction(treeNode *node){
 		IRVar *v1=newVaribleIRVar(item->parameters[i]->name);
 		//if(item->parameters[i]->arrayDim==0){
 			IRStmt *PS=newStmt(_PARA,v1,NULL,NULL);
-			PSL=catStmtList(PSL,newStmtList(PS));	
+			PSL=catStmtList(newStmtList(PS),PSL);	
 		//}
 		/*else{
 			IRVar *aaddr=newTempIRVar();

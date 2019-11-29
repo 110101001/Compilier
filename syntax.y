@@ -27,6 +27,9 @@ extern treeNode* root;
 %token LP RP LB RB LC RC
 %token IF ELSE WHILE RETURN TYPE STRUCT DOT SEMI COMMA
 
+%left PLUS MINUS
+%left STAR DIV
+
 %%
 Program : ExtDefList {
 		treeNode* node=newNode(Program,$1->val,1);
@@ -321,20 +324,6 @@ Exp : Exp ASSIGNOP Exp{
 		insertNode(node,$3);
 		$$=node;
 		}
-	| Exp PLUS Exp{
-		treeNode* node=newNode(Exp,$1->val,5);
-		insertNode(node,$1);
-		insertNode(node,$2);
-		insertNode(node,$3);
-		$$=node;
-		}
-	| Exp MINUS Exp{
-		treeNode* node=newNode(Exp,$1->val,6);
-		insertNode(node,$1);
-		insertNode(node,$2);
-		insertNode(node,$3);
-		$$=node;
-		}
 	| Exp STAR Exp{
 		treeNode* node=newNode(Exp,$1->val,7);
 		insertNode(node,$1);
@@ -344,6 +333,20 @@ Exp : Exp ASSIGNOP Exp{
 		}
 	| Exp DIV Exp{
 		treeNode* node=newNode(Exp,$1->val,8);
+		insertNode(node,$1);
+		insertNode(node,$2);
+		insertNode(node,$3);
+		$$=node;
+		}
+	| Exp PLUS Exp{
+		treeNode* node=newNode(Exp,$1->val,5);
+		insertNode(node,$1);
+		insertNode(node,$2);
+		insertNode(node,$3);
+		$$=node;
+		}
+	| Exp MINUS Exp{
+		treeNode* node=newNode(Exp,$1->val,6);
 		insertNode(node,$1);
 		insertNode(node,$2);
 		insertNode(node,$3);
