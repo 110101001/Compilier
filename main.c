@@ -12,15 +12,21 @@ extern structNode *structHead;
 void printInfo(treeNode *node);
 
 int main(int argc,char **argv){
+	FILE *f;
+	FILE *o;
 	globalErrorFlag=0;
 	//load file
-	if(argc>=2){
-		FILE *f;
+	if(argc==3){
 		f=fopen(argv[1],"r");
+		o=fopen(argv[2],"w");
 		//parse
 		yyrestart(f);
+		yyparse();
 	}
-	yyparse();
+	else{
+		printf("Usage:parser [input] [output]\n");
+		return 0;
+	}
 
 	//generate symboltable
 	if(globalErrorFlag==0){
@@ -31,6 +37,7 @@ int main(int argc,char **argv){
 			globalErrorFlag=1;
 		}
 	}
+	//generate IR
 	if(globalErrorFlag==0){
 		travelNodeRev(root,combineCode);
 	}
@@ -38,7 +45,7 @@ int main(int argc,char **argv){
 	//printf("\nOptimizeInfo:\n");
 	head=IROptimize(head);
 	//printf("\nAfterOptimize:\n");
-	printCode(head);
+	printCode(o,head);
 	return 0;
 }
 

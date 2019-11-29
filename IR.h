@@ -44,7 +44,7 @@ void removeNextStmt(IRStmtList* current);
 IRStmtList *doRemove(IRStmtList *head);
 IRStmtList *getStmtListByLine(int n,IRStmtList *head);
 char *printArg(IRVar *arg);
-void printLine(IRStmt *stmt);
-void printCode(IRStmtList *head);
+void printLine(FILE *f,IRStmt *stmt);
+void printCode(FILE *f,IRStmtList *head);
 
 #endif

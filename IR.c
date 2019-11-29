@@ -200,7 +200,7 @@ char *printArg(IRVar *arg){
 	return strArg;
 }
 
-void printLine(IRStmt *stmt){
+void printLine(FILE *f,IRStmt *stmt){
 	char str[100];
 	char *arg1,*arg2,*target;
 	arg1=printArg(stmt->arg1);
@@ -285,14 +285,14 @@ void printLine(IRStmt *stmt){
 	free(arg1);
 	free(arg2);
 	free(target);
-	printf("%s\n",str);
+	fprintf(f,"%s\n",str);
 	return;
 }
 
-void printCode(IRStmtList *head){
+void printCode(FILE *f,IRStmtList *head){
 	IRStmtList *p=head;
 	while(p!=0){
-		printLine(p->stmt);
+		printLine(f,p->stmt);
 		p=p->next;
 	}
 }

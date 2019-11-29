@@ -174,7 +174,7 @@ IRStmtList *translateCall(IRVar *retVar,treeNode *node){
 		IRStmtList *p=expList;
 		IRVar *writeVar;
 
-		if(p->stmt->type==_ARG){
+		if(p->stmt->type==_ARG&&p->next==0){
 			writeVar=p->stmt->arg1;
 			free(expList);
 			expList=NULL;
