@@ -9,16 +9,13 @@ typedef enum {_ascii,_asciiz,_word,_space} dataType;
 struct _operand{
     operandType type;
     union{
-        struct {
             int regNum;
-        };
-        struct {
-            int num;
-        };
+            int val;
         struct {
             int regNum;
             int offset;
         };
+        char *name;
     };
 };
 typedef struct _operand* operand;
