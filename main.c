@@ -44,7 +44,7 @@ int main(int argc,char **argv){
 	}
 	//printCode(head);
 	//printf("\nOptimizeInfo:\n");
-	head=IROptimize(head);
+	//head=IROptimize(head);
 	//printf("\nAfterOptimize:\n");
 	printCode(o,head);
 	machineCode MC=generateProgram(head);

@@ -142,6 +142,18 @@ code generateCode(IRStmtList **head){
 			break;
 		case _WRIT:
 			break;
+	case _IFL:
+	break;
+	case _IFLE:
+	break;
+	case _IFS:
+	break;
+	case _IFSE:
+	break;
+	case _IFE:
+	break;
+	case _IFNE:
+	break;
 	}
 	*head=list;
 	return Code;
@@ -260,6 +272,7 @@ char *printInstr(code Code){
 			break;
 
 	}
+	return instr;
 }
 
 void printMachineCode(machineCode MC){
@@ -297,5 +310,6 @@ void printMachineCode(machineCode MC){
 			free(instrStr);
 			instr=instr->next;
 		}
+		func=func->next;
 	}
 }
