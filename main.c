@@ -4,6 +4,7 @@
 #include "semantics.h"
 #include "translate.h"
 #include "optimize.h"
+#include "machine.h"
 
 extern treeNode* root;
 extern int globalErrorFlag;
@@ -46,6 +47,8 @@ int main(int argc,char **argv){
 	head=IROptimize(head);
 	//printf("\nAfterOptimize:\n");
 	printCode(o,head);
+	machineCode MC=generateProgram(head);
+	printMachineCode(MC);
 	return 0;
 }
 

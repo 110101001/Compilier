@@ -1,10 +1,10 @@
-#ifndef __machine_H_
-#define __machine_H_
+#ifndef __MACHINE_H_
+#define __MACHINE_H_
 #include "IR.h"
 
 typedef enum {_label,_add,_addi,_sub,_mul,_div,_mflo,_move,_li,_lw,_sw,_j,_jal,_jr,_beq,_bne,_bgt,_blt,_bge,_bie} instrType;
-typedef enum {_label,_reg, _immi, _refe} operandType;
-typedef enum {_ascii,_asciiz,_word,_space} dataType;
+typedef enum {_lab,_reg, _immi, _refe} operandType;
+typedef enum {_asciiz,_word,_space} dataType;
 
 struct _operand{
     operandType type;
@@ -12,7 +12,7 @@ struct _operand{
             int regNum;
             int val;
         struct {
-            int regNum;
+            int baseRegNum;
             int offset;
         };
         char *name;
@@ -32,7 +32,7 @@ struct _dataItem{
 };
 typedef struct _dataItem* dataItem;
 
-typedef struct _code{
+struct _code{
     instrType instr;
     operand src1;
     operand src2;
@@ -58,24 +58,17 @@ struct dataSeg{
 };
 typedef struct dataSeg* dataSeg;
 */
-typedef struct machineCode{
+struct _machineCode{
     dataItem data;
     funcSeg func;
-}machineCode;
-
-struct _dataItem promptStr={
-    _asciiz,"_prompt",18,"Enter an integer:",&retStr
 };
-
-struct _dataItem retStr={
-    _asciiz,"_ret",2,"\n",0
-};
-
-const dataItem standardDataSeg=&promptStr;
+typedef struct _machineCode* machineCode;
 
 funcSeg generateFunc(IRStmtList **head);
 code generateCode(IRStmtList **head);
+machineCode generateProgram(IRStmtList *head);
 
+void printMachineCode(machineCode MC);
 
 
 
