@@ -2,7 +2,7 @@
 #define __MACHINE_H_
 #include "IR.h"
 
-typedef enum {_label,_add,_addi,_sub,_mul,_div,_mflo,_move,_li,_lw,_sw,_j,_jal,_jr,_beq,_bne,_bgt,_blt,_bge,_bie} instrType;
+typedef enum {_label,_add,_addi,_sub,_mul,_div,_mflo,_move,_li,_lw,_sw,_j,_jal,_jr,_beq,_bne,_bgt,_blt,_bge,_ble} instrType;
 typedef enum {_lab,_reg, _immi, _refe} operandType;
 typedef enum {_asciiz,_word,_space} dataType;
 

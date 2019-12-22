@@ -42,7 +42,7 @@ code generateOperand(operand op,IRVar *var){
 	switch(var->type){
 		case LABEL:
 			op->type=_label;
-			op->name=var->name;
+			op->val=var->val;
 			break;
 		case VARIABLE:
 		case TEMP:
@@ -126,7 +126,7 @@ code generateCode(IRStmtList **head){
 		case _GOTO: 
 			Code->instr=_j;
 			Code->src1=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
+			Code=catCode(generateOperand(Code->src1,list->stmt->target),Code);
 			break;
 		case _RETU: 
 			break;
@@ -143,17 +143,59 @@ code generateCode(IRStmtList **head){
 		case _WRIT:
 			break;
 	case _IFL:
-	break;
+			Code->instr=_bgt;
+			Code->src1=NEWOPERAND;
+			Code->src2=NEWOPERAND;
+			Code->dest=NEWOPERAND;
+			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
+			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
+			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			break;
 	case _IFLE:
-	break;
+			Code->instr=_bge;
+			Code->src1=NEWOPERAND;
+			Code->src2=NEWOPERAND;
+			Code->dest=NEWOPERAND;
+			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
+			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
+			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			break;
 	case _IFS:
-	break;
+			Code->instr=_blt;
+			Code->src1=NEWOPERAND;
+			Code->src2=NEWOPERAND;
+			Code->dest=NEWOPERAND;
+			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
+			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
+			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			break;
 	case _IFSE:
-	break;
+			Code->instr=_ble;
+			Code->src1=NEWOPERAND;
+			Code->src2=NEWOPERAND;
+			Code->dest=NEWOPERAND;
+			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
+			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
+			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			break;
 	case _IFE:
-	break;
+			Code->instr=_beq;
+			Code->src1=NEWOPERAND;
+			Code->src2=NEWOPERAND;
+			Code->dest=NEWOPERAND;
+			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
+			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
+			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			break;
 	case _IFNE:
-	break;
+			Code->instr=_bne;
+			Code->src1=NEWOPERAND;
+			Code->src2=NEWOPERAND;
+			Code->dest=NEWOPERAND;
+			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
+			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
+			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			break;
 	}
 	*head=list;
 	return Code;
@@ -199,6 +241,9 @@ char *printOperand(operand Operand){
 			break;
 		case _reg:
 			sprintf(operandStr,"$%d",Operand->regNum);
+			break;
+		case _lab:
+			sprintf(operandStr,"Label%d",Operand->val);
 			break;
 	}
 	return operandStr;
@@ -270,7 +315,60 @@ char *printInstr(code Code){
 			sprintf(instr,"j %s",src1);
 			free(src1);
 			break;
-
+		case _beq:
+			src1=printOperand(Code->src1);
+			src2=printOperand(Code->src2);
+			dest=printOperand(Code->dest);
+			sprintf(instr,"beq %s, %s, %s",src1,src2,dest);
+			free(src1);
+			free(src2);
+			free(dest);
+			break;
+		case _bne:
+			src1=printOperand(Code->src1);
+			src2=printOperand(Code->src2);
+			dest=printOperand(Code->dest);
+			sprintf(instr,"bne %s, %s, %s",src1,src2,dest);
+			free(src1);
+			free(src2);
+			free(dest);
+			break;
+		case _bgt:
+			src1=printOperand(Code->src1);
+			src2=printOperand(Code->src2);
+			dest=printOperand(Code->dest);
+			sprintf(instr,"bgt %s, %s, %s",src1,src2,dest);
+			free(src1);
+			free(src2);
+			free(dest);
+			break;
+		case _blt:
+			src1=printOperand(Code->src1);
+			src2=printOperand(Code->src2);
+			dest=printOperand(Code->dest);
+			sprintf(instr,"blt %s, %s, %s",src1,src2,dest);
+			free(src1);
+			free(src2);
+			free(dest);
+			break;
+		case _bge:
+			src1=printOperand(Code->src1);
+			src2=printOperand(Code->src2);
+			dest=printOperand(Code->dest);
+			sprintf(instr,"bge %s, %s, %s",src1,src2,dest);
+			free(src1);
+			free(src2);
+			free(dest);
+			break;
+		case _ble:
+			src1=printOperand(Code->src1);
+			src2=printOperand(Code->src2);
+			dest=printOperand(Code->dest);
+			sprintf(instr,"ble %s, %s, %s",src1,src2,dest);
+			free(src1);
+			free(src2);
+			free(dest);
+			break;
 	}
 	return instr;
 }
