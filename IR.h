@@ -43,6 +43,7 @@ void removeStmt(IRStmtList* current);
 void removeNextStmt(IRStmtList* current);
 IRStmtList *doRemove(IRStmtList *head);
 IRStmtList *getStmtListByLine(int n,IRStmtList *head);
+IRStmtList *searchLabel(IRVar *label);
 char *printArg(IRVar *arg);
 void printLine(FILE *f,IRStmt *stmt);
 void printCode(FILE *f,IRStmtList *head);

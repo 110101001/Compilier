@@ -4,17 +4,19 @@
 
 #define NEWBLOCK (block)malloc(sizeof(struct _block))
 
-typedef struct blockList{
-    block b;
-    struct blockList* next;
-}blockList;
+struct _regDesc{
+    int len;
+    char **var;
+};
+typedef struct _regDesc* regDesc;
 
 struct _block{
     IRStmtList *blockHeader;
     int len;
-    int *activeIn;
-    int *activeOut;
-    struct _block *next;
+    IRVar *activeIn;
+    IRVar *activeOut;
+    struct _block *next1;
+    struct _block *next2;
 };
 typedef struct _block* block;
 

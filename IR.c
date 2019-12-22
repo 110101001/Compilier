@@ -1,5 +1,6 @@
 #include "IR.h"
 #include <malloc.h>
+extern IRStmtList *head;
 int currentNo;
 int currentLabel;
 
@@ -170,6 +171,18 @@ void removeNextStmt(IRStmtList* current){
 	free(current->next);
 	current->next=next;
 	return;
+}
+
+IRStmtList *searchLabel(IRVar *label){
+	IRStmtList *p=head;
+	while(p!=0){
+		if(p->stmt->type==_LABE){
+			if(cmpIRVar(p->stmt->arg1,label)){
+				return p;
+			}
+		}
+	}
+	return NULL;
 }
 
 char *printArg(IRVar *arg){
