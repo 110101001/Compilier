@@ -24,7 +24,12 @@ block devideBlock(IRStmtList *head){
     if(head==NULL){
         return NULL;
     }
+    if(head->blk!=NULL){
+        return head->blk;
+    }
     block b=NEWBLOCK;
+    head->blk=b;
+    b->blockHeader=head;
     IRStmtList* p=head->next;
     b->len=1;
     while(
@@ -33,11 +38,12 @@ block devideBlock(IRStmtList *head){
     &&p->stmt->type<_IFL
     &&p->next!=NULL
     &&p->next->stmt->type!=_LABE
-    &&p->next->stmt->type!=_FUNC
     ){
         b->len++;
+        p->blk=b;
         p=p->next;
     }
+    if(p!=NULL&&p->next!=NULL){
     switch(p->next->stmt->type){
         case _LABE:
             b->next1=devideBlock(p->next);
@@ -55,4 +61,6 @@ block devideBlock(IRStmtList *head){
             b->next2=devideBlock(searchLabel(p->stmt->target));
             break;
     }
+    }
+    return b;
 }

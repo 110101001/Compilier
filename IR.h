@@ -1,8 +1,11 @@
 #ifndef _IR_H_
 #define _IR_H_
 
-#include<stdio.h>
-#include"symbolTable.h"
+#include <stdio.h>
+#include "symbolTable.h"
+
+extern struct _block;
+typedef struct _block* block;
 
 typedef struct IRVar{
 	enum {VARIABLE,LABEL,TEMP,CONSTANT,ADDRESS,FUNCTION,SIZE} type;
@@ -24,6 +27,7 @@ typedef struct IRStmt{
 typedef struct IRStmtList{
 	IRStmt *stmt;
 	int removeFlag;
+	block blk;
 	struct IRStmtList *next;
 }IRStmtList;
 

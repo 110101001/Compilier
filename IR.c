@@ -7,6 +7,7 @@ int currentLabel;
 IRStmtList *newStmtList(IRStmt *stmt){
 	IRStmtList *newUnit=malloc(sizeof(IRStmtList));
 	newUnit->removeFlag=0;
+	newUnit->blk=NULL;
 	newUnit->stmt=stmt;
 	newUnit->next=0;
 	return newUnit;
@@ -181,6 +182,7 @@ IRStmtList *searchLabel(IRVar *label){
 				return p;
 			}
 		}
+		p=p->next;
 	}
 	return NULL;
 }

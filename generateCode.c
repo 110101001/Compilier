@@ -230,7 +230,7 @@ machineCode generateProgram(IRStmtList *head){
 	while((*list)->stmt->type!=_FUNC||strcm((*list)->stmt->arg1->name,"main")){
 		(*list)=(*list)->next;
 	}
-	//block b=devideBlock(*list);
+	block b=devideBlock(*list);
 	machineCode MC=(machineCode)malloc(sizeof(struct _machineCode));
 	MC->data=standardDataSeg;
 	MC->func=NULL;

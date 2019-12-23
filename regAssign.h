@@ -19,8 +19,8 @@ typedef struct _varDesc* varDesc;
 struct _block{
     IRStmtList *blockHeader;
     int len;
-    IRVar *activeIn;
-    IRVar *activeOut;
+    IRVar **activeIn;
+    IRVar **activeOut;
     struct _block *next1;
     struct _block *next2;
 };
