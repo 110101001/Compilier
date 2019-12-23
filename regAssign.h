@@ -6,9 +6,15 @@
 
 struct _regDesc{
     int len;
-    char **var;
+    IRVar **var;
 };
 typedef struct _regDesc* regDesc;
+
+struct _varDesc{
+    int address;
+    int regNum;
+};
+typedef struct _varDesc* varDesc;
 
 struct _block{
     IRStmtList *blockHeader;
@@ -20,6 +26,8 @@ struct _block{
 };
 typedef struct _block* block;
 
+void resetReg(IRVar *var);
+int getSymbolReg(IRVar *var);
 block devideBlock(IRStmtList *head);
 
 #endif

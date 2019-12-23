@@ -1,5 +1,6 @@
 #include "IR.h"
 #include "machine.h"
+#include "regAssign.h"
 #include <stdio.h>
 #include <malloc.h>
 
@@ -11,6 +12,9 @@
 #define MAXDATALEN 100
 #define MAXINSTRLEN 20
 #define MAXOPERANDLEN 10
+
+extern int currentCount;
+extern varDesc varLocation;
 
 struct _dataItem retStr={
     _asciiz,"_ret",2,"\"\n\"",0
@@ -39,6 +43,7 @@ code catCode(code first,code second){
 }
 
 code generateOperand(operand op,IRVar *var){
+	code Code=NULL;
 	switch(var->type){
 		case LABEL:
 			op->type=_label;
@@ -47,7 +52,7 @@ code generateOperand(operand op,IRVar *var){
 		case VARIABLE:
 		case TEMP:
 			op->type=_reg;
-			op->regNum=0;//TODO: implement getReg()
+			op->regNum=getSymbolReg(var);
 			break;
 		case CONSTANT:
 			op->type=_immi;
@@ -74,6 +79,7 @@ code generateCode(IRStmtList **head){
 			Code->src1=NEWOPERAND;
 			Code->dest=NEWOPERAND;
 			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
+			resetReg(list->stmt->target);
 			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
 			break;
 		case _ADD: 
@@ -88,6 +94,7 @@ code generateCode(IRStmtList **head){
 			Code->dest=NEWOPERAND;
 			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
 			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
+			resetReg(list->stmt->target);
 			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
 			break;
 		case _SUB: 
@@ -97,6 +104,7 @@ code generateCode(IRStmtList **head){
 			Code->dest=NEWOPERAND;
 			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
 			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
+			resetReg(list->stmt->target);
 			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
 			break;
 		case _MULT:
@@ -106,6 +114,7 @@ code generateCode(IRStmtList **head){
 			Code->dest=NEWOPERAND;
 			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
 			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
+			resetReg(list->stmt->target);
 			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
 			break;
 		case _DIVI: 
@@ -115,6 +124,7 @@ code generateCode(IRStmtList **head){
 			Code->dest=NEWOPERAND;
 			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
 			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
+			resetReg(list->stmt->target);
 			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
 			break;
 		case _ADDR: 
@@ -215,7 +225,12 @@ funcSeg generateFunc(IRStmtList **head){
 
 machineCode generateProgram(IRStmtList *head){
 	IRStmtList **list=(IRStmtList **)malloc(sizeof(IRStmtList*));
+	varLocation=(varDesc)malloc(currentCount*sizeof(struct _varDesc));
 	list=&head;
+	while((*list)->stmt->type!=_FUNC||strcm((*list)->stmt->arg1->name,"main")){
+		(*list)=(*list)->next;
+	}
+	//block b=devideBlock(*list);
 	machineCode MC=(machineCode)malloc(sizeof(struct _machineCode));
 	MC->data=standardDataSeg;
 	MC->func=NULL;

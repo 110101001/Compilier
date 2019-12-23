@@ -1,28 +1,42 @@
 #include "machine.h"
 #include "regAssign.h"
+#include "optimize.h"
+#include <malloc.h>
 
 extern IRVar *self;
+varDesc varLocation;
+int regCount;
 
 int getReg();
-void blockDevide();
+void resetReg(IRVar *var){
+    int pos=findVar(var);
+    varLocation[pos].regNum=-1;
+}
+int getSymbolReg(IRVar *var){
+    int pos=findVar(var);
+    if(varLocation[pos].regNum==-1){
+        varLocation[pos].regNum=regCount++;
+    }
+    return varLocation[pos].regNum;
+}
+
 block devideBlock(IRStmtList *head){
     if(head==NULL){
         return NULL;
     }
     block b=NEWBLOCK;
-    IRStmtList* p=head;
-    b->len=0;
+    IRStmtList* p=head->next;
+    b->len=1;
     while(
-        p->next!=NULL
+        p!=NULL
+    &&p->stmt->type!=_GOTO
+    &&p->stmt->type<_IFL
+    &&p->next!=NULL
     &&p->next->stmt->type!=_LABE
     &&p->next->stmt->type!=_FUNC
-    &&p->next->stmt->type!=_GOTO
-    &&p->next->stmt->type<_IFL
     ){
         b->len++;
         p=p->next;
-        //TODO: record active varible
-
     }
     switch(p->next->stmt->type){
         case _LABE:

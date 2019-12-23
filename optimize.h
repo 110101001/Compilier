@@ -2,6 +2,7 @@
 #define _OPTIMIZE_H_
 #include "IR.h"
 
+int findVar(IRVar *var);
 IRStmtList *IROptimize(IRStmtList *head);
 
 #endif
