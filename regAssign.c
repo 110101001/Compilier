@@ -68,15 +68,37 @@ block devideBlock(IRStmtList *head){
 
 bitVector *createBV(int n){
     int len=n/8;
-    return malloc(len*sizeof(bitVector));
+    return calloc(len,sizeof(bitVector));
 }
 
 void merge(int len,bitVector *a,bitVector *b){
+    if(a==NULL){
+        a=createBV(len);
+    }
+    if(b==NULL){
+        return;
+    }
     for(int i=0;i<len/8;i++){
         a[i]=a[i]|b[i];
     }
 }
 
+void resetBit(int n,bitVector *a){
+    a[n/8]&=~(1<<n%8);
+}
+
+void setBit(int n,bitVector *a){
+    a[n/8]|=(1<<n%8);
+}
+
+int compareFlow(int n,bitVector *a,bitVector *b){
+    for(int i=0;i<n/8;i++){
+        if(a[i]!=b[i]){
+            return 1;
+        }
+    }
+    return 0;
+}
 void funcActiveAnalyze(IRStmtList *head){
     //find all Vars
     IRVar **funcVars=(IRVar **)malloc(currentCount*sizeof(IRVar*));
@@ -110,11 +132,48 @@ void funcActiveAnalyze(IRStmtList *head){
     while(changeFlag==1){
         changeFlag=0;
         while(pi!=NULL&&pi->stmt->type!=_FUNC){
-            pi->in=createBV(varCount);
-            pi->out=createBV(varCount);
+            bitVector *tempIn=NULL;
+            bitVector *tempOut=NULL;
+            merge(varCount,tempIn,pi->in);
+            merge(varCount,tempOut,pi->in);
             //calc out
+            if(pi->stmt->type==_GOTO){
+                merge(varCount,pi->out,searchLabel(pi->stmt->target)->in);
+            }
+            else{
             if(pi->stmt->type>=_IFL){
+                merge(varCount,pi->out,searchLabel(pi->stmt->target)->in);
+            }
                 merge(varCount,pi->out,pi->next->in);
+            }
+            //calc in
+            merge(varCount,pi->in,pi->out);
+            if(pi->stmt->target!=NULL&&
+            (pi->stmt->target->type==TEMP||pi->stmt->target->type==VARIABLE)&&
+            !(
+                pi->stmt->type==_WMEM
+            )){
+                resetBit(findVar(funcVars,varCount,pi->stmt->target),pi->in);
+            }
+            if(pi->stmt->arg1!=NULL&&
+            (pi->stmt->arg1->type==TEMP||pi->stmt->arg1->type==VARIABLE)&&
+            !(
+                0
+            )){
+                setBit(findVar(funcVars,varCount,pi->stmt->arg1),pi->in);
+            }
+            if(pi->stmt->arg2!=NULL&&
+            (pi->stmt->arg2->type==TEMP||pi->stmt->arg2->type==VARIABLE)&&
+            !(
+                0
+            )){
+                setBit(findVar(funcVars,varCount,pi->stmt->arg2),pi->in);
+            }
+            if(compareFlow(varCount,tempIn,pi->in)){
+                changeFlag=1;
+            }
+            if(compareFlow(varCount,tempOut,pi->out)){
+                changeFlag=1;
             }
             pi=pi->next;
         }
