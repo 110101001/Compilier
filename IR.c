@@ -10,6 +10,7 @@ IRStmtList *newStmtList(IRStmt *stmt){
 	newUnit->blk=NULL;
 	newUnit->stmt=stmt;
 	newUnit->next=0;
+	newUnit->prev=0;
 	return newUnit;
 }
 
@@ -89,6 +90,7 @@ IRStmtList *catStmtList(IRStmtList *list1,IRStmtList *list2){
 		p1=p1->next;
 	}
 	p1->next=list2;
+	list2->prev=p1;
 	return list1;
 }
 
@@ -152,6 +154,7 @@ IRStmtList *doRemove(IRStmtList *head){
 		IRStmtList *temp=newHead->next;
 		free(newHead);
 		newHead=temp;
+		newHead->prev=NULL;
 	}
 	IRStmtList *p=newHead;
 	while(p!=0&&p->next!=0){
@@ -171,6 +174,9 @@ void removeNextStmt(IRStmtList* current){
 	IRStmtList *next=current->next->next;
 	free(current->next);
 	current->next=next;
+	if(next!=0){
+		next->prev=current;
+	}
 	return;
 }
 

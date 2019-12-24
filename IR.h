@@ -4,8 +4,9 @@
 #include <stdio.h>
 #include "symbolTable.h"
 
-extern struct _block;
+struct _block;
 typedef struct _block* block;
+typedef unsigned char bitVector;
 
 typedef struct IRVar{
 	enum {VARIABLE,LABEL,TEMP,CONSTANT,ADDRESS,FUNCTION,SIZE} type;
@@ -29,6 +30,9 @@ typedef struct IRStmtList{
 	int removeFlag;
 	block blk;
 	struct IRStmtList *next;
+	struct IRStmtList *prev;
+	bitVector* in;
+	bitVector* out;
 }IRStmtList;
 
 IRStmtList *newStmtList(IRStmt *stmt);

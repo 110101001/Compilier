@@ -216,6 +216,7 @@ funcSeg generateFunc(IRStmtList **head){
 	func->instrHead=NULL;
 	func->next=NULL;
 	func->funcName=(*head)->stmt->arg1->name;
+	funcActiveAnalyze(*head);
 	while((*head)->next!=0&&(*head)->next->stmt->type!=_FUNC){
 		(*head)=(*head)->next;
 		func->instrHead=catCode(func->instrHead,generateCode(head));
@@ -227,10 +228,10 @@ machineCode generateProgram(IRStmtList *head){
 	IRStmtList **list=(IRStmtList **)malloc(sizeof(IRStmtList*));
 	varLocation=(varDesc)malloc(currentCount*sizeof(struct _varDesc));
 	list=&head;
-	while((*list)->stmt->type!=_FUNC||strcm((*list)->stmt->arg1->name,"main")){
+	/*while((*list)->stmt->type!=_FUNC||strcm((*list)->stmt->arg1->name,"main")){
 		(*list)=(*list)->next;
-	}
-	block b=devideBlock(*list);
+	}*/
+	//block b=devideBlock(*list);
 	machineCode MC=(machineCode)malloc(sizeof(struct _machineCode));
 	MC->data=standardDataSeg;
 	MC->func=NULL;
@@ -239,7 +240,7 @@ machineCode generateProgram(IRStmtList *head){
 		if(MC->func==NULL){
 			MC->func=generateFunc(list);
 			current=MC->func;
-		} 
+		}
 		else{
 			current->next=generateFunc(list);
 			current=current->next;

@@ -8,9 +8,9 @@ extern int currentLabel;
 int currentCount;
 IRVar **Self;
 
-int findVar(IRVar *var){
-	for(int i=0;i<currentCount;i++){
-		if(cmpIRVar(var,Self[i])){
+int findVar(IRVar **list,int len,IRVar *var){
+	for(int i=0;i<len;i++){
+		if(cmpIRVar(var,list[i])){
 			return i;
 		}
 	}
@@ -32,7 +32,7 @@ IRStmtList *IROptimize(IRStmtList *head){
 		IRStmtList *p=head;
 		while(p!=0){
 			if(p->stmt->target!=NULL&&(p->stmt->target->type==TEMP||p->stmt->target->type==VARIABLE)){
-				int no=findVar(p->stmt->target);
+				int no=findVar(Self,currentCount,p->stmt->target);
 				if(no==-1){
 					no=currentCount;
 					Self[currentCount++]=p->stmt->target;
@@ -49,7 +49,7 @@ IRStmtList *IROptimize(IRStmtList *head){
 				}
 			}
 			if(p->stmt->arg1!=NULL&&(p->stmt->arg1->type==TEMP||p->stmt->arg1->type==VARIABLE)){
-				int no=findVar(p->stmt->arg1);
+				int no=findVar(Self,currentCount,p->stmt->arg1);
 				if(no==-1){
 					no=currentCount;
 					Self[currentCount++]=p->stmt->arg1;
@@ -60,7 +60,7 @@ IRStmtList *IROptimize(IRStmtList *head){
 				}
 			}
 			if(p->stmt->arg2!=NULL&&(p->stmt->arg2->type==TEMP||p->stmt->arg2->type==VARIABLE)){
-				int no=findVar(p->stmt->arg2);
+				int no=findVar(Self,currentCount,p->stmt->arg2);
 				if(no==-1){
 					no=currentCount;
 					Self[currentCount++]=p->stmt->arg2;

@@ -26,8 +26,11 @@ struct _block{
 };
 typedef struct _block* block;
 
+typedef unsigned char bitVector;
+
 void resetReg(IRVar *var);
 int getSymbolReg(IRVar *var);
 block devideBlock(IRStmtList *head);
 
+void funcActiveAnalyze(IRStmtList *head);
 #endif
