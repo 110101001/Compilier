@@ -12,7 +12,6 @@ bitVector **graphMatrix;
 int regCount;
 int varCount;
 
-
 int getReg();
 void resetReg(IRVar *var){
 	int pos=findVar(Self,currentCount, var);
@@ -139,7 +138,7 @@ void funcActiveAnalyze(IRStmtList *head){
 	int changeFlag=1;
 	while(changeFlag==1){
 		changeFlag=0;
-	    IRStmtList *pi=p;
+		IRStmtList *pi=p;
 		while(pi!=NULL&&pi->stmt->type!=_FUNC){
 			bitVector *tempIn=NULL;
 			bitVector *tempOut=NULL;
@@ -148,12 +147,12 @@ void funcActiveAnalyze(IRStmtList *head){
 			//calc out
 			merge(varCount,&pi->out,NULL);
 			if(pi->stmt->type==_GOTO){
-                IRStmtList *lab=searchLabel(pi->stmt->target);
+				IRStmtList *lab=searchLabel(pi->stmt->target);
 				merge(varCount,&pi->out,lab->in);
 			}
 			else{
 				if(pi->stmt->type>=_IFL){
-                    IRStmtList *lab=searchLabel(pi->stmt->target);
+					IRStmtList *lab=searchLabel(pi->stmt->target);
 					merge(varCount,&pi->out,lab->in);
 				}
 				if(pi->next!=NULL&&pi->next->stmt->type!=_FUNC){
@@ -197,8 +196,8 @@ void funcActiveAnalyze(IRStmtList *head){
 }
 
 void connectNode(int a,int b){
-		setBit(b,graphMatrix[a]);
-		setBit(a,graphMatrix[b]);
+	setBit(b,graphMatrix[a]);
+	setBit(a,graphMatrix[b]);
 	graphNeibor p=nodes[a]->neibor;
 	if(p==NULL){
 		nodes[a]->neibor=malloc(sizeof(struct _graphNeibor));
@@ -230,7 +229,7 @@ void connectNode(int a,int b){
 	p->next=0;
 }
 
-void graphColoring(IRStmtList *head){
+void graphGeneration(IRStmtList *head){
 	//generate nodes
 	if(nodes!=NULL){
 		free(nodes);
@@ -240,6 +239,8 @@ void graphColoring(IRStmtList *head){
 		nodes[i]=malloc(sizeof(struct _graphNode));
 		nodes[i]->var=funcVars[i];
 		nodes[i]->neibor=NULL;
+		nodes[i]->state=INGRAPH;
+		nodes[i]->color=-1;
 	}
 	if(graphMatrix!=NULL){
 		free(graphMatrix);
@@ -253,25 +254,60 @@ void graphColoring(IRStmtList *head){
 
 	//connect interfered nodes
 	IRStmtList *p=head;
-	
+
 	while(p->next!=NULL&&p->next->stmt->type!=_FUNC){
 		p=p->next;
 		for(int i=0;i<varCount;i++){
 			if(GETBIT(p->out,i)!=0){
-			for(int j=i/8;j<(varCount-1)/8+1;j++){
-				if(graphMatrix[i][j]|p->out[j]!=graphMatrix[i][j]){
-					bitVector t=p->out[j]&~graphMatrix[i][j];
-					for(int k=0;k<8;k++){
-						if(t&0x1!=0){
-							int m=k+j;
-							connectNode(i,m);
+				for(int j=i/8;j<(varCount-1)/8+1;j++){
+					if(graphMatrix[i][j]|p->out[j]!=graphMatrix[i][j]){
+						bitVector t=p->out[j]&~graphMatrix[i][j];
+						for(int k=0;k<8;k++){
+							if(t&0x1!=0){
+								int m=k+j;
+								connectNode(i,m);
+							}
+							t=t>>1;
 						}
-						t=t>>1;
 					}
 				}
 			}
+		}
+	}
+}
+
+void graphColoring(IRStmtList *head){
+	int *stack=malloc(varCount*sizeof(int));
+	int top=0;
+	graphGeneration(head);
+	while(varCount-top>MAXCOLOR){
+		int pushed=1;
+		while(pushed==1&&varCount-top>MAXCOLOR){
+			pushed=0;
+			for(int i=0;i<varCount;i++){
+				int neiborCount=0;
+				graphNeibor p=nodes[i]->neibor;
+				while(p!=NULL){
+					if(p->node->state==INGRAPH){
+						neiborCount++;
+					}
+					p=p->next;
+				}
+				if(neiborCount<MAXCOLOR){
+					stack[top++]=i;
+					nodes[i]->state=POPED;
+					pushed=1;
+				}
+			}
+		}
+		if(varCount-top>MAXCOLOR){
+			for(int i=0;i<varCount;i++){
+				if(nodes[i]->state==0){
+					stack[top++]=i;
+					nodes[i]->state=OVERFLOWING;
+				}
 			}
 		}
 	}
-
+	//TODO: pop nodes and color them
 }

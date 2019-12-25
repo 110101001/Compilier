@@ -5,6 +5,8 @@
 #define NEWBLOCK (block)malloc(sizeof(struct _block))
 #define GETBIT(bv,n) (bv[(n)/8]&(1<<(n)%8))
 
+#define MAXCOLOR 10
+
 struct _regDesc{
     int len;
     IRVar **var;
@@ -26,6 +28,8 @@ typedef struct _graphNeibor *graphNeibor;
 struct _graphNode{
     IRVar *var;
     graphNeibor neibor;
+    enum{INGRAPH,POPED,OVERFLOWING} state;
+    int color;
 };
 typedef struct _graphNode* graphNode;
 
