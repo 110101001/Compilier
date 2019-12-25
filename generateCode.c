@@ -151,6 +151,7 @@ code generateCode(IRStmtList **head){
 		case _READ:
 			break;
 		case _WRIT:
+			free(Code);
 			break;
 	case _IFL:
 			Code->instr=_bgt;
@@ -218,6 +219,7 @@ funcSeg generateFunc(IRStmtList **head){
 	func->funcName=(*head)->stmt->arg1->name;
 	funcActiveAnalyze(*head);
 	printCode(stdout,*head);
+	graphColoring(*head);
 	while((*head)->next!=0&&(*head)->next->stmt->type!=_FUNC){
 		(*head)=(*head)->next;
 		func->instrHead=catCode(func->instrHead,generateCode(head));

@@ -3,6 +3,7 @@
 #include "machine.h"
 
 #define NEWBLOCK (block)malloc(sizeof(struct _block))
+#define GETBIT(bv,n) (bv[(n)/8]&(1<<(n)%8))
 
 struct _regDesc{
     int len;
@@ -15,6 +16,18 @@ struct _varDesc{
     int regNum;
 };
 typedef struct _varDesc* varDesc;
+
+struct _graphNeibor{
+    struct _graphNode *node;
+    struct _graphNeibor *next;
+};
+typedef struct _graphNeibor *graphNeibor;
+
+struct _graphNode{
+    IRVar *var;
+    graphNeibor neibor;
+};
+typedef struct _graphNode* graphNode;
 
 struct _block{
     IRStmtList *blockHeader;
@@ -33,4 +46,5 @@ int getSymbolReg(IRVar *var);
 block devideBlock(IRStmtList *head);
 
 void funcActiveAnalyze(IRStmtList *head);
+void graphColoring(IRStmtList *head);
 #endif

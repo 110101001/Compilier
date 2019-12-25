@@ -6,7 +6,12 @@
 extern IRVar **Self;
 extern int currentCount;
 varDesc varLocation;
+graphNode *nodes;
+IRVar **funcVars;
+bitVector **graphMatrix;
 int regCount;
+int varCount;
+
 
 int getReg();
 void resetReg(IRVar *var){
@@ -99,12 +104,16 @@ int compareFlow(int n,bitVector *a,bitVector *b){
 	}
 	return 0;
 }
+
 void funcActiveAnalyze(IRStmtList *head){
 	//find all Vars
-	IRVar **funcVars=(IRVar **)malloc(currentCount*sizeof(IRVar*));
+	if(funcVars!=NULL){
+		free(funcVars);
+	}
+	funcVars=(IRVar **)malloc(currentCount*sizeof(IRVar*));
 
 	IRStmtList *p=head;
-	int varCount=0;
+	varCount=0;
 	while(p->next!=NULL&&p->next->stmt->type!=_FUNC){
 		p=p->next;
 		if(p->stmt->target!=NULL&&(p->stmt->target->type==TEMP||p->stmt->target->type==VARIABLE)){
@@ -183,6 +192,85 @@ void funcActiveAnalyze(IRStmtList *head){
 			free(tempIn);
 			free(tempOut);
 			pi=pi->prev;
+		}
+	}
+}
+
+void connectNode(int a,int b){
+		setBit(b,graphMatrix[a]);
+		setBit(a,graphMatrix[b]);
+	graphNeibor p=nodes[a]->neibor;
+	if(p==NULL){
+		nodes[a]->neibor=malloc(sizeof(struct _graphNeibor));
+		p=nodes[a]->neibor;
+	}
+	else{
+		while(p->next!=0){
+			p=p->next;
+		}
+		p->next=malloc(sizeof(struct _graphNeibor));
+		p=p->next;
+	}
+	p->node=nodes[b];
+	p->next=0;
+
+	p=nodes[b]->neibor;
+	if(p==NULL){
+		nodes[b]->neibor=malloc(sizeof(struct _graphNeibor));
+		p=nodes[b]->neibor;
+	}
+	else{
+		while(p->next!=0){
+			p=p->next;
+		}
+		p->next=malloc(sizeof(struct _graphNeibor));
+		p=p->next;
+	}
+	p->node=nodes[a];
+	p->next=0;
+}
+
+void graphColoring(IRStmtList *head){
+	//generate nodes
+	if(nodes!=NULL){
+		free(nodes);
+	}	
+	nodes=malloc(varCount*sizeof(graphNode));
+	for(int i=0;i<varCount;i++){
+		nodes[i]=malloc(sizeof(struct _graphNode));
+		nodes[i]->var=funcVars[i];
+		nodes[i]->neibor=NULL;
+	}
+	if(graphMatrix!=NULL){
+		free(graphMatrix);
+		//This would cause memory leak. but i'm too lazy to free each line.
+	}
+	graphMatrix=malloc(varCount*sizeof(bitVector*));
+	for(int i=0;i<varCount;i++){
+		graphMatrix[i]=createBV(varCount);
+		setBit(i,graphMatrix[i]);
+	}
+
+	//connect interfered nodes
+	IRStmtList *p=head;
+	
+	while(p->next!=NULL&&p->next->stmt->type!=_FUNC){
+		p=p->next;
+		for(int i=0;i<varCount;i++){
+			if(GETBIT(p->out,i)!=0){
+			for(int j=i/8;j<(varCount-1)/8+1;j++){
+				if(graphMatrix[i][j]|p->out[j]!=graphMatrix[i][j]){
+					bitVector t=p->out[j]&~graphMatrix[i][j];
+					for(int k=0;k<8;k++){
+						if(t&0x1!=0){
+							int m=k+j;
+							connectNode(i,m);
+						}
+						t=t>>1;
+					}
+				}
+			}
+			}
 		}
 	}
 
