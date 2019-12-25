@@ -12,11 +12,19 @@ bitVector **graphMatrix;
 int regCount;
 int varCount;
 
-int getReg();
+int getReg(IRVar *var){
+	for(int i=0;i<varCount;i++){
+		if(cmpIRVar(var,nodes[i]->var)){
+			return nodes[i]->color;
+		}
+	}
+}
+
 void resetReg(IRVar *var){
 	int pos=findVar(Self,currentCount, var);
 	varLocation[pos].regNum=-1;
 }
+
 int getSymbolReg(IRVar *var){
 	int pos=findVar(Self,currentCount, var);
 	if(varLocation[pos].regNum==-1){
@@ -276,6 +284,25 @@ void graphGeneration(IRStmtList *head){
 	}
 }
 
+int coloring(graphNode n){
+	bitVector *v=createBV(MAXCOLOR);
+	graphNeibor neibor=n->neibor;
+	while(neibor!=NULL){
+	if(neibor->node->color!=-1
+	&&neibor->node->state==INGRAPH){
+		setBit(neibor->node->color,v);
+	}
+		neibor=neibor->next;
+	}
+	for(int i=0;i<MAXCOLOR;i++){
+		if(GETBIT(v,i)==0){
+			n->color=i;
+			return 1;
+		}
+	}
+	return 0;
+}
+
 void graphColoring(IRStmtList *head){
 	int *stack=malloc(varCount*sizeof(int));
 	int top=0;
@@ -309,5 +336,20 @@ void graphColoring(IRStmtList *head){
 			}
 		}
 	}
-	//TODO: pop nodes and color them
+	//color remining nodes
+	for(int i=0;i<varCount;i++){
+		if(nodes[i]->state==INGRAPH){
+			coloring(nodes[i]);
+		}
+	}
+	//color poped nodes
+	for(;top>0;top--){
+		nodes[stack[top-1]]->state=INGRAPH;
+		coloring(nodes[stack[top-1]]);//if not colored, overflow it.
+	}
+	for(int i=0;i<varCount;i++){
+		char *str=printArg(nodes[i]->var);
+		printf("[Var] %s: [reg] %d\n",str,nodes[i]->color);
+		free(str);
+	}
 }

@@ -5,7 +5,7 @@
 #define NEWBLOCK (block)malloc(sizeof(struct _block))
 #define GETBIT(bv,n) (bv[(n)/8]&(1<<(n)%8))
 
-#define MAXCOLOR 10
+#define MAXCOLOR 3
 
 struct _regDesc{
     int len;
@@ -45,6 +45,7 @@ typedef struct _block* block;
 
 typedef unsigned char bitVector;
 
+int getReg(IRVar *var);
 void resetReg(IRVar *var);
 int getSymbolReg(IRVar *var);
 block devideBlock(IRStmtList *head);

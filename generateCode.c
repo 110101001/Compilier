@@ -218,7 +218,6 @@ funcSeg generateFunc(IRStmtList **head){
 	func->next=NULL;
 	func->funcName=(*head)->stmt->arg1->name;
 	funcActiveAnalyze(*head);
-	printCode(stdout,*head);
 	graphColoring(*head);
 	while((*head)->next!=0&&(*head)->next->stmt->type!=_FUNC){
 		(*head)=(*head)->next;
