@@ -217,6 +217,7 @@ funcSeg generateFunc(IRStmtList **head){
 	func->next=NULL;
 	func->funcName=(*head)->stmt->arg1->name;
 	funcActiveAnalyze(*head);
+	printCode(stdout,*head);
 	while((*head)->next!=0&&(*head)->next->stmt->type!=_FUNC){
 		(*head)=(*head)->next;
 		func->instrHead=catCode(func->instrHead,generateCode(head));

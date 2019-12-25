@@ -314,6 +314,9 @@ void printCode(FILE *f,IRStmtList *head){
 	IRStmtList *p=head;
 	while(p!=0){
 		printLine(f,p->stmt);
+		if(p->in!=NULL&&p->out!=NULL){
+			printf("in:%x , out:%x\n",*p->in,*p->out);
+		}
 		p=p->next;
 	}
 }
