@@ -82,7 +82,7 @@ funcSeg generateFunc(IRStmtList **head);
 code generateCode(IRStmtList **head);
 machineCode generateProgram(IRStmtList *head);
 
-void printMachineCode(machineCode MC);
+void printMachineCode(FILE* f,machineCode MC);
 
 
 

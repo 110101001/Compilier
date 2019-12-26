@@ -398,11 +398,11 @@ void graphColoring(IRStmtList *head){
 		nodes[stack[top-1]]->state=INGRAPH;
 		coloring(nodes[stack[top-1]]);//if not colored, overflow it.
 	}
-	for(int i=0;i<varCount;i++){
+	/*for(int i=0;i<varCount;i++){
 		char *str=printArg(nodes[i]->var);
 		printf("[Var] %s: [reg] %d\n",str,nodes[i]->desc->regNum);
 		free(str);
-	}
+	}*/
 }
 
 

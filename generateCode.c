@@ -196,7 +196,7 @@ code callStack(IRStmtList *head,code Code){
 		}
 		else{
 			Code=NEWCODE;
-			Code->instr=_move;
+			Code->instr=_sw;
 			Code->src1=NEWOPERAND;
 			Code->dest=newRefeOperand(getAddress(4),$FP);
 			varStack=catCode(generateOperand(Code->src1,p->stmt->arg1,1),varStack);
@@ -207,26 +207,26 @@ code callStack(IRStmtList *head,code Code){
 	}
 	varStack=catCode(
 			varStack,
-			newCode(_move,
+			newCode(_sw,
 				newRefeOperand(getAddress(4),$FP),
 				newOperand(_reg,$RA),
 				NULL));
 	varStack=catCode(
 			varStack,
-			newCode(_move,
+			newCode(_sw,
 				newRefeOperand(getAddress(4),$FP),
 				newOperand(_reg,$FP),
 				NULL));
 	retCode=catCode(varStack,retCode);
 	retCode=catCode(
 			retCode,
-			newCode(_move,
+			newCode(_lw,
 				newOperand(_reg,$FP),
 				newRefeOperand(-4,$FP),
 				NULL));
 	retCode=catCode(
 			retCode,
-			newCode(_move,
+			newCode(_lw,
 				newOperand(_reg,$RA),
 				newRefeOperand(getAddress(0)-8,$FP),
 				NULL));
@@ -337,9 +337,9 @@ code generateCode(IRStmtList **head){
 			newOperand(_reg,$FP),
 			NULL),retCode);
 			retCode=catCode(retCode,Code);
-			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
 			Code=retCode;
 			retCode=callStack(list,retCode);
+			retCode=catCode(retCode,generateOperand(Code->next->next->dest,list->stmt->target,0));
 			Code->src2=newOperand(_immi,getAddress(0));
 			break;
 		case _PARA: 
@@ -350,7 +350,7 @@ code generateCode(IRStmtList **head){
 				retCode=catCode(generateOperand(Code->dest,list->stmt->target,1),retCode);
 			}
 			else{
-				Code->instr=_move;
+				Code->instr=_lw;
 				Code->dest=NEWOPERAND;
 				Code->src1=newRefeOperand(-4*(loadCount-2),$FP);
 				retCode=catCode(generateOperand(Code->dest,list->stmt->target,1),retCode);
@@ -543,7 +543,7 @@ char *printInstr(code Code){
 		case _sw:
 			src1=printOperand(Code->src1);
 			dest=printOperand(Code->dest);
-			sprintf(instr,"sw %s, %s",dest,src1);
+			sprintf(instr,"sw %s, %s",src1,dest);
 			free(src1);
 			free(dest);
 			break;
@@ -639,17 +639,17 @@ char *printInstr(code Code){
 	return instr;
 }
 
-void printMachineCode(machineCode MC){
+void printMachineCode(FILE *f,machineCode MC){
 	dataItem item=MC->data;
 	funcSeg func=MC->func;
-	printf(".data\n");
+	fprintf(f,".data\n");
 	while(item!=NULL){
 		char *typeStr=malloc(MAXTYPELEN*sizeof(char));
 		char *dataStr=malloc(MAXDATALEN*sizeof(char));
 		switch(item->type){
 			case _asciiz:
 				strcp(typeStr,".asciiz");
-				strcp(dataStr,item->name);
+				strcp(dataStr,item->str);
 				break;
 			case _word:
 				strcp(typeStr,".word");
@@ -658,27 +658,27 @@ void printMachineCode(machineCode MC){
 				strcp(typeStr,".space");
 				break;
 		}
-		printf("%s: %s %s\n",item->name,typeStr,dataStr);
+		fprintf(f,"%s: %s %s\n",item->name,typeStr,dataStr);
 		free(typeStr);
 		free(dataStr);
 		item=item->next;
 	}
-	printf(".global main\n");
-	printf(".text\n");
-	printf("%s",builtInFunc);
+	fprintf(f,".globl main\n");
+	fprintf(f,".text\n");
+	fprintf(f,"%s",builtInFunc);
 	while(func!=NULL){
-		printf("%s:\n",func->funcName);
+		fprintf(f,"%s:\n",func->funcName);
 		code instr=func->instrHead;
 		while(instr!=NULL){
 			char *instrStr=printInstr(instr);
 			if(instr->instr!=_lab){
-				printf("  ");
+				fprintf(f,"  ");
 			}
-			printf("%s\n",instrStr);
+			fprintf(f,"%s\n",instrStr);
 			free(instrStr);
 			instr=instr->next;
 		}
-		printf("\n");
+		fprintf(f,"\n");
 		func=func->next;
 	}
 }
