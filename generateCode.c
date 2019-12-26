@@ -5,7 +5,7 @@
 #include <malloc.h>
 
 const char regName[32][5]={
-	"zero",
+	"0",
 	"at",
 	"v0","v1",
 	"a0","a1","a2","a3",
@@ -18,6 +18,27 @@ const char regName[32][5]={
 	"fp",
 	"ra"
 };
+
+const char builtInFunc[]=
+"\
+read:\n\
+  li $v0, 4\n\
+  la $a0, _prompt\n\
+  syscall\n\
+  li $v0, 5\n\
+  syscall\n\
+  jr $ra\n\
+  \n\
+write:\n\
+  li $v0, 1\n\
+  syscall\n\
+  li $v0, 4\n\
+  la $a0, _ret\n\
+  syscall\n\
+  move $v0, $0\n\
+  jr $ra\n\
+  \n"
+;
 #define NEWCODE (code)malloc(sizeof(struct _code))
 #define NEWOPERAND (operand)malloc(sizeof(struct _operand))
 #define NEWFUNCSEG (funcSeg)malloc(sizeof(struct _funcSeg))
@@ -157,7 +178,7 @@ code callStack(IRStmtList *head,code Code){
 					retCode,
 					newCode(_lw,
 						newOperand(_reg,nodes[i]->desc->regNum),
-						newRefeOperand(getAddress(4),$FP),
+						newRefeOperand(getAddress(0)-4,$FP),
 						NULL));
 		}
 	}
@@ -188,9 +209,27 @@ code callStack(IRStmtList *head,code Code){
 			varStack,
 			newCode(_move,
 				newRefeOperand(getAddress(4),$FP),
+				newOperand(_reg,$RA),
+				NULL));
+	varStack=catCode(
+			varStack,
+			newCode(_move,
+				newRefeOperand(getAddress(4),$FP),
 				newOperand(_reg,$FP),
 				NULL));
 	retCode=catCode(varStack,retCode);
+	retCode=catCode(
+			retCode,
+			newCode(_move,
+				newOperand(_reg,$FP),
+				newRefeOperand(-4,$FP),
+				NULL));
+	retCode=catCode(
+			retCode,
+			newCode(_move,
+				newOperand(_reg,$RA),
+				newRefeOperand(getAddress(0)-8,$FP),
+				NULL));
 	return retCode;
 }
 
@@ -313,7 +352,7 @@ code generateCode(IRStmtList **head){
 			else{
 				Code->instr=_move;
 				Code->dest=NEWOPERAND;
-				Code->src1=newRefeOperand(-4*(loadCount-3),$FP);
+				Code->src1=newRefeOperand(-4*(loadCount-2),$FP);
 				retCode=catCode(generateOperand(Code->dest,list->stmt->target,1),retCode);
 			}
 			loadCount++;
@@ -626,6 +665,7 @@ void printMachineCode(machineCode MC){
 	}
 	printf(".global main\n");
 	printf(".text\n");
+	printf("%s",builtInFunc);
 	while(func!=NULL){
 		printf("%s:\n",func->funcName);
 		code instr=func->instrHead;
@@ -638,6 +678,7 @@ void printMachineCode(machineCode MC){
 			free(instrStr);
 			instr=instr->next;
 		}
+		printf("\n");
 		func=func->next;
 	}
 }
