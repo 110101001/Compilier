@@ -3,7 +3,7 @@
 #include "IR.h"
 
 typedef enum {_label,_add,_addi,_sub,_mul,_div,_move,_mflo,_li,_lw,_sw,_j,_jal,_jr,_beq,_bne,_bgt,_blt,_bge,_ble} instrType;
-typedef enum {_lab,_reg, _immi, _refe} operandType;
+typedef enum {_lab,_reg, _immi, _refe,_func} operandType;
 typedef enum {_asciiz,_word,_space} dataType;
 
 #define $FP 30
@@ -12,6 +12,8 @@ typedef enum {_asciiz,_word,_space} dataType;
 #define $T9 25
 #define $V0 2
 #define $S0 16
+#define $A0 4
+#define $RA 31
 
 
 struct _operand{
@@ -23,6 +25,7 @@ struct _operand{
             int baseRegNum;
             int offset;
         };
+        char *name;
     };
 };
 typedef struct _operand* operand;
@@ -71,6 +74,10 @@ struct _machineCode{
 };
 typedef struct _machineCode* machineCode;
 
+operand newOperand(operandType type,int n);
+operand newRefeOperand(int offset,int baseReg);
+code newCode(instrType instr,operand dest,operand src1,operand src2);
+code catCode(code first,code second);
 funcSeg generateFunc(IRStmtList **head);
 code generateCode(IRStmtList **head);
 machineCode generateProgram(IRStmtList *head);

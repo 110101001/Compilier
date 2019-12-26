@@ -53,7 +53,9 @@ void resetReg(IRVar *var);
 int getSymbolReg(IRVar *var);
 block devideBlock(IRStmtList *head);
 
+code stackLiveVar(IRStmtList *head,code Code);
 void funcActiveAnalyze(IRStmtList *head);
 void graphColoring(IRStmtList *head);
+int getAddress(int size);
 int getMemoryPosition(IRVar *var,int size);
 #endif

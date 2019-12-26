@@ -29,6 +29,7 @@ const char regName[32][5]={
 
 extern int currentCount;
 extern varDesc varLocation;
+extern graphNode *nodes;
 
 struct _dataItem retStr={
     _asciiz,"_ret",2,"\"\n\"",0
@@ -37,7 +38,7 @@ struct _dataItem retStr={
 struct _dataItem promptStr={
     _asciiz,"_prompt",18,"\"Enter an integer:\"",&retStr
 };
-
+int argCount;
 const dataItem standardDataSeg=&promptStr;
 
 code getLast(code current){
@@ -112,15 +113,12 @@ code generateOperand(operand op,IRVar *var,int pos){
 			op->type=_immi;
 			op->val=var->val;
 			break;
+		case FUNCTION:
+			op->type=_func;
+			op->name=var->name;
+			break;
 	}
 	return Code;
-}
-
-code generateCall(IRStmtList *head){
-	if(head->stmt->type!=_CALL){
-		return NULL;
-	}
-
 }
 
 code generateCode(IRStmtList **head){
@@ -186,7 +184,6 @@ code generateCode(IRStmtList **head){
 			Code->instr=_mflo;
 			Code->dest=NEWOPERAND;
 			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
-
 			break;
 		case _ADDR: 
 			break;
@@ -200,14 +197,56 @@ code generateCode(IRStmtList **head){
 			retCode=catCode(generateOperand(Code->src1,list->stmt->target,0),retCode);
 			break;
 		case _RETU: 
+			Code->instr=_move;
+			Code->src1=NEWOPERAND;
+			Code->dest=newOperand(_reg,$V0);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			Code=newCode(_jr,NULL,newOperand(_reg,$RA),NULL);
+			retCode=catCode(retCode,Code);
 			break;
-		case _DEC: 
+		case _DEC:
 			break;
-		case _ARG: 
+		case _ARG:
+			if(argCount<4){
+				Code->instr=_move;
+				Code->src1=NEWOPERAND;
+				Code->dest=newOperand(_reg,$A0+argCount);
+				retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			}
+			else{
+				Code->instr=_move;
+				Code->src1=NEWOPERAND;
+				Code->dest=newRefeOperand(getAddress(4),$FP);
+				retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			}
+			argCount++;
 			break;
 		case _CALL: 
+			argCount=0;
+			Code->instr=_jal;
+			Code->src1=NEWOPERAND;
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			Code=NEWCODE;
+			Code->instr=_move;
+			Code->src1=newOperand(_reg,$V0);
+			Code->dest=NEWOPERAND;
+			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
+			retCode=stackLiveVar(list,retCode);
 			break;
 		case _PARA: 
+			if(argCount<4){
+				Code->instr=_move;
+				Code->src1=NEWOPERAND;
+				Code->dest=newOperand(_reg,$A0+argCount);
+				retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			}
+			else{
+				Code->instr=_move;
+				Code->src1=NEWOPERAND;
+				Code->dest=newRefeOperand(getAddress(4),$FP);
+				retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			}
+			argCount++;
 			break;
 		case _READ:
 			break;
@@ -327,6 +366,9 @@ char *printOperand(operand Operand){
 			break;
 		case _refe:
 			sprintf(operandStr,"%d($%s)",Operand->offset,regName[Operand->baseRegNum]);
+			break;
+		case _func:
+			sprintf(operandStr,"%s",Operand->name);
 			break;
 	}
 	return operandStr;
