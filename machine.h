@@ -2,9 +2,17 @@
 #define __MACHINE_H_
 #include "IR.h"
 
-typedef enum {_label,_add,_addi,_sub,_mul,_div,_mflo,_move,_li,_lw,_sw,_j,_jal,_jr,_beq,_bne,_bgt,_blt,_bge,_ble} instrType;
+typedef enum {_label,_add,_addi,_sub,_mul,_div,_move,_mflo,_li,_lw,_sw,_j,_jal,_jr,_beq,_bne,_bgt,_blt,_bge,_ble} instrType;
 typedef enum {_lab,_reg, _immi, _refe} operandType;
 typedef enum {_asciiz,_word,_space} dataType;
+
+#define $FP 30
+#define $T0 8 
+#define $T8 24
+#define $T9 25
+#define $V0 2
+#define $S0 16
+
 
 struct _operand{
     operandType type;
@@ -15,7 +23,6 @@ struct _operand{
             int baseRegNum;
             int offset;
         };
-        char *name;
     };
 };
 typedef struct _operand* operand;

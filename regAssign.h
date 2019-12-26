@@ -5,7 +5,9 @@
 #define NEWBLOCK (block)malloc(sizeof(struct _block))
 #define GETBIT(bv,n) (bv[(n)/8]&(1<<(n)%8))
 
-#define MAXCOLOR 3
+#define MAXSREG 8//t0-t7 ,t8,t9 reserved for temp vars
+#define MAXLREG 8//s0-s7, s8 for fp
+#define MAXCOLOR MAXSREG+MAXLREG
 
 struct _regDesc{
     int len;
@@ -27,9 +29,10 @@ typedef struct _graphNeibor *graphNeibor;
 
 struct _graphNode{
     IRVar *var;
+    varDesc desc;
     graphNeibor neibor;
     enum{INGRAPH,POPED,OVERFLOWING} state;
-    int color;
+    int crossCall;
 };
 typedef struct _graphNode* graphNode;
 
@@ -52,4 +55,5 @@ block devideBlock(IRStmtList *head);
 
 void funcActiveAnalyze(IRStmtList *head);
 void graphColoring(IRStmtList *head);
+int getMemoryPosition(IRVar *var,int size);
 #endif

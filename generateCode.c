@@ -4,6 +4,20 @@
 #include <stdio.h>
 #include <malloc.h>
 
+const char regName[32][5]={
+	"zero",
+	"at",
+	"v0","v1",
+	"a0","a1","a2","a3",
+	"t0","t1","t2","t3","t4","t5","t6","t7",
+	"s0","s1","s2","s3","s4","s5","s6","s7",
+	"t8","t9",
+	"k0","k1",
+	"gp",
+	"sp",
+	"fp",
+	"ra"
+};
 #define NEWCODE (code)malloc(sizeof(struct _code))
 #define NEWOPERAND (operand)malloc(sizeof(struct _operand))
 #define NEWFUNCSEG (funcSeg)malloc(sizeof(struct _funcSeg))
@@ -42,7 +56,31 @@ code catCode(code first,code second){
 	return first;
 }
 
-code generateOperand(operand op,IRVar *var){
+operand newOperand(operandType type,int n){
+	operand op=NEWOPERAND;
+	op->type=type;
+	op->val=n;
+	return op;
+}
+operand newRefeOperand(int offset,int baseReg){
+	operand op=NEWOPERAND;
+	op->type=_refe;
+	op->baseRegNum=baseReg;
+	op->offset=offset;
+	return op;
+}
+
+code newCode(instrType instr,operand dest,operand src1,operand src2){
+	code Code=NEWCODE;
+	Code->instr=instr;
+	Code->dest=dest;
+	Code->src1=src1;
+	Code->src2=src2;	
+	Code->next=NULL;
+	return Code;
+}
+
+code generateOperand(operand op,IRVar *var,int pos){
 	code Code=NULL;
 	switch(var->type){
 		case LABEL:
@@ -52,25 +90,48 @@ code generateOperand(operand op,IRVar *var){
 		case VARIABLE:
 		case TEMP:
 			op->type=_reg;
-			op->regNum=getSymbolReg(var);
+			op->regNum=getReg(var);
+			if(op->regNum==-1){
+				if(pos){
+					Code=newCode(_lw,
+					newOperand(_reg,$T8+pos-1),
+					newRefeOperand(getMemoryPosition(var,4),$FP),
+					NULL);
+					op->regNum=Code->dest->regNum;
+				}
+				else{
+					Code=newCode(_sw,
+					newRefeOperand(getMemoryPosition(var,4),$FP),
+					newOperand(_reg,$V0),
+					NULL);
+					op->regNum=Code->src1->regNum;
+				}
+			}
 			break;
 		case CONSTANT:
 			op->type=_immi;
 			op->val=var->val;
 			break;
 	}
-	return NULL;
+	return Code;
+}
+
+code generateCall(IRStmtList *head){
+	if(head->stmt->type!=_CALL){
+		return NULL;
+	}
+
 }
 
 code generateCode(IRStmtList **head){
 	IRStmtList *list=*head;
 	code Code=NEWCODE;
-	code last=Code;
+	code retCode=Code;
 	switch(list->stmt->type){
 		case _LABE: 
 			Code->instr=_label;
 			Code->src1=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
 			break;
 		case _FUNC: //UNREADCHABLE
 			break;
@@ -78,9 +139,8 @@ code generateCode(IRStmtList **head){
 			Code->instr=_move;
 			Code->src1=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
-			resetReg(list->stmt->target);
-			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
 			break;
 		case _ADD: 
 			if(list->stmt->arg2->type==CONSTANT){
@@ -92,40 +152,41 @@ code generateCode(IRStmtList **head){
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
-			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
-			resetReg(list->stmt->target);
-			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
+			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
 			break;
 		case _SUB: 
 			Code->instr=_sub;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
-			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
-			resetReg(list->stmt->target);
-			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
+			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
 			break;
 		case _MULT:
 			Code->instr=_mul;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
-			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
-			resetReg(list->stmt->target);
-			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
+			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
 			break;
 		case _DIVI: 
 			Code->instr=_div;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
-			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
-			resetReg(list->stmt->target);
-			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
+			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
+			Code=NEWCODE;
+			Code->instr=_mflo;
+			Code->dest=NEWOPERAND;
+			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
+
 			break;
 		case _ADDR: 
 			break;
@@ -136,7 +197,7 @@ code generateCode(IRStmtList **head){
 		case _GOTO: 
 			Code->instr=_j;
 			Code->src1=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->target),Code);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->target,0),retCode);
 			break;
 		case _RETU: 
 			break;
@@ -152,64 +213,65 @@ code generateCode(IRStmtList **head){
 			break;
 		case _WRIT:
 			free(Code);
+			retCode=NULL;
 			break;
 	case _IFL:
 			Code->instr=_bgt;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
-			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
-			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
+			generateOperand(Code->dest,list->stmt->target,0);
 			break;
 	case _IFLE:
 			Code->instr=_bge;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
-			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
-			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
+			generateOperand(Code->dest,list->stmt->target,0);
 			break;
 	case _IFS:
 			Code->instr=_blt;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
-			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
-			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
+			generateOperand(Code->dest,list->stmt->target,0);
 			break;
 	case _IFSE:
 			Code->instr=_ble;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
-			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
-			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
+			generateOperand(Code->dest,list->stmt->target,0);
 			break;
 	case _IFE:
 			Code->instr=_beq;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
-			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
-			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
+			generateOperand(Code->dest,list->stmt->target,0);
 			break;
 	case _IFNE:
 			Code->instr=_bne;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			Code=catCode(generateOperand(Code->src1,list->stmt->arg1),Code);
-			Code=catCode(generateOperand(Code->src2,list->stmt->arg2),Code);
-			Code=catCode(generateOperand(Code->dest,list->stmt->target),Code);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
+			generateOperand(Code->dest,list->stmt->target,0);
 			break;
 	}
 	*head=list;
-	return Code;
+	return retCode;
 }
 
 funcSeg generateFunc(IRStmtList **head){
@@ -258,10 +320,13 @@ char *printOperand(operand Operand){
 			sprintf(operandStr,"%d",Operand->val);
 			break;
 		case _reg:
-			sprintf(operandStr,"$%d",Operand->regNum);
+			sprintf(operandStr,"$%s",regName[Operand->regNum]);
 			break;
 		case _lab:
 			sprintf(operandStr,"Label%d",Operand->val);
+			break;
+		case _refe:
+			sprintf(operandStr,"%d($%s)",Operand->offset,regName[Operand->baseRegNum]);
 			break;
 	}
 	return operandStr;
@@ -320,6 +385,20 @@ char *printInstr(code Code){
 			src1=printOperand(Code->src1);
 			dest=printOperand(Code->dest);
 			sprintf(instr,"move %s, %s",dest,src1);
+			free(src1);
+			free(dest);
+			break;
+		case _sw:
+			src1=printOperand(Code->src1);
+			dest=printOperand(Code->dest);
+			sprintf(instr,"sw %s, %s",dest,src1);
+			free(src1);
+			free(dest);
+			break;
+		case _lw:
+			src1=printOperand(Code->src1);
+			dest=printOperand(Code->dest);
+			sprintf(instr,"lw %s, %s",dest,src1);
 			free(src1);
 			free(dest);
 			break;

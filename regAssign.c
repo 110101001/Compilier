@@ -11,11 +11,20 @@ IRVar **funcVars;
 bitVector **graphMatrix;
 int regCount;
 int varCount;
+int fpOffSet;
 
 int getReg(IRVar *var){
 	for(int i=0;i<varCount;i++){
 		if(cmpIRVar(var,nodes[i]->var)){
-			return nodes[i]->color;
+			if(nodes[i]->desc->regNum==-1){
+				return -1;
+			}
+			if(nodes[i]->desc->regNum<MAXSREG){
+				return $T0+nodes[i]->desc->regNum;
+			}
+			else{
+				return $S0+nodes[i]->desc->regNum-MAXSREG;
+			}
 		}
 	}
 }
@@ -92,6 +101,18 @@ void merge(int len,bitVector **a,bitVector *b){
 	}
 	for(int i=0;i<(len-1)/8+1;i++){
 		(*a)[i]=(*a)[i]|b[i];
+	}
+}
+
+void common(int len,bitVector **a,bitVector *b){
+	if(*a==NULL){
+		*a=createBV(len);
+	}
+	if(b==NULL){
+		return;
+	}
+	for(int i=0;i<(len-1)/8+1;i++){
+		(*a)[i]=(*a)[i]&b[i];
 	}
 }
 
@@ -248,11 +269,13 @@ void graphGeneration(IRStmtList *head){
 		nodes[i]->var=funcVars[i];
 		nodes[i]->neibor=NULL;
 		nodes[i]->state=INGRAPH;
-		nodes[i]->color=-1;
+		nodes[i]->desc=malloc(sizeof(struct _varDesc));
+		nodes[i]->desc->regNum=-1;
+		nodes[i]->desc->address=-1;
+		nodes[i]->crossCall=0;
 	}
 	if(graphMatrix!=NULL){
 		free(graphMatrix);
-		//This would cause memory leak. but i'm too lazy to free each line.
 	}
 	graphMatrix=malloc(varCount*sizeof(bitVector*));
 	for(int i=0;i<varCount;i++){
@@ -281,6 +304,18 @@ void graphGeneration(IRStmtList *head){
 				}
 			}
 		}
+		if(p->stmt->type==_CALL){
+			bitVector *temp=NULL;
+			common(varCount,&temp,p->in);
+			common(varCount,&temp,p->out);
+			resetBit(findVar(funcVars,varCount,p->stmt->target),temp);
+			for(int i=0;i<varCount;i++){
+				if(GETBIT(temp,i)){
+					nodes[i]->crossCall=1;
+				}
+			}
+			free(temp);
+		}
 	}
 }
 
@@ -288,16 +323,32 @@ int coloring(graphNode n){
 	bitVector *v=createBV(MAXCOLOR);
 	graphNeibor neibor=n->neibor;
 	while(neibor!=NULL){
-	if(neibor->node->color!=-1
+	if(neibor->node->desc->regNum!=-1
 	&&neibor->node->state==INGRAPH){
-		setBit(neibor->node->color,v);
+		setBit(neibor->node->desc->regNum,v);
 	}
 		neibor=neibor->next;
 	}
-	for(int i=0;i<MAXCOLOR;i++){
-		if(GETBIT(v,i)==0){
-			n->color=i;
-			return 1;
+	if(n->crossCall==0){
+		for(int i=0;i<MAXCOLOR;i++){
+			if(GETBIT(v,i)==0){
+				n->desc->regNum=i;
+				return 1;
+			}
+		}
+	}
+	else{
+		for(int i=MAXSREG;i<MAXCOLOR;i++){
+			if(GETBIT(v,i)==0){
+				n->desc->regNum=i;
+				return 1;
+			}
+		}
+		for(int i=0;i<MAXSREG;i++){
+			if(GETBIT(v,i)==0){
+				n->desc->regNum=i;
+				return 1;
+			}
 		}
 	}
 	return 0;
@@ -349,7 +400,20 @@ void graphColoring(IRStmtList *head){
 	}
 	for(int i=0;i<varCount;i++){
 		char *str=printArg(nodes[i]->var);
-		printf("[Var] %s: [reg] %d\n",str,nodes[i]->color);
+		printf("[Var] %s: [reg] %d\n",str,nodes[i]->desc->regNum);
 		free(str);
 	}
+}
+
+int getAddress(int size){
+	fpOffSet+=size;
+	return fpOffSet-size;
+}
+
+int getMemoryPosition(IRVar *var,int size){
+	int index=findVar(funcVars,varCount,var);
+	if(nodes[index]->desc->address==-1){
+		nodes[index]->desc->address=getAddress(size);
+	}
+	return nodes[index]->desc->address;
 }
