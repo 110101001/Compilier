@@ -323,10 +323,10 @@ int coloring(graphNode n){
 	bitVector *v=createBV(MAXCOLOR);
 	graphNeibor neibor=n->neibor;
 	while(neibor!=NULL){
-	if(neibor->node->desc->regNum!=-1
-	&&neibor->node->state==INGRAPH){
-		setBit(neibor->node->desc->regNum,v);
-	}
+		if(neibor->node->desc->regNum!=-1
+				&&neibor->node->state==INGRAPH){
+			setBit(neibor->node->desc->regNum,v);
+		}
 		neibor=neibor->next;
 	}
 	if(n->crossCall==0){
@@ -405,30 +405,6 @@ void graphColoring(IRStmtList *head){
 	}
 }
 
-code stackLiveVar(IRStmtList *head,code Code){
-	code retCode=Code;
-	bitVector *temp=NULL;
-	common(varCount,&temp,head->in);
-	common(varCount,&temp,head->out);
-	for(int i=0;i<varCount;i++){
-	if(GETBIT(temp,i)&&
-	nodes[i]->crossCall==1){
-			retCode=catCode(
-				newCode(_sw,
-				newRefeOperand(getAddress(4),$FP),
-				newOperand(_reg,nodes[i]->desc->regNum),
-				NULL),
-				Code);
-			retCode=catCode(
-				retCode,
-				newCode(_lw,
-				newOperand(_reg,nodes[i]->desc->regNum),
-				newRefeOperand(getAddress(4),$FP),
-				NULL));
-	
-		}	
-	}
-}
 
 int getAddress(int size){
 	fpOffSet+=size;

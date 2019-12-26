@@ -14,7 +14,7 @@ typedef enum {_asciiz,_word,_space} dataType;
 #define $S0 16
 #define $A0 4
 #define $RA 31
-
+#define $ZERO 0
 
 struct _operand{
     operandType type;

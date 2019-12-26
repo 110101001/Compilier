@@ -53,7 +53,7 @@ void resetReg(IRVar *var);
 int getSymbolReg(IRVar *var);
 block devideBlock(IRStmtList *head);
 
-code stackLiveVar(IRStmtList *head,code Code);
+void common(int len,bitVector **a,bitVector *b);
 void funcActiveAnalyze(IRStmtList *head);
 void graphColoring(IRStmtList *head);
 int getAddress(int size);

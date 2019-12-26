@@ -28,17 +28,19 @@ const char regName[32][5]={
 #define MAXOPERANDLEN 10
 
 extern int currentCount;
+extern int varCount;
 extern varDesc varLocation;
 extern graphNode *nodes;
 
+int loadCount;
+
 struct _dataItem retStr={
-    _asciiz,"_ret",2,"\"\n\"",0
+	_asciiz,"_ret",2,"\"\n\"",0
 };
 
 struct _dataItem promptStr={
-    _asciiz,"_prompt",18,"\"Enter an integer:\"",&retStr
+	_asciiz,"_prompt",18,"\"Enter an integer:\"",&retStr
 };
-int argCount;
 const dataItem standardDataSeg=&promptStr;
 
 code getLast(code current){
@@ -80,7 +82,7 @@ code newCode(instrType instr,operand dest,operand src1,operand src2){
 	Code->next=NULL;
 	return Code;
 }
-
+//0:dest,1:src1,2:src2,3:src1(reg only),4:src2(reg only)
 code generateOperand(operand op,IRVar *var,int pos){
 	code Code=NULL;
 	switch(var->type){
@@ -95,23 +97,38 @@ code generateOperand(operand op,IRVar *var,int pos){
 			if(op->regNum==-1){
 				if(pos){
 					Code=newCode(_lw,
-					newOperand(_reg,$T8+pos-1),
-					newRefeOperand(getMemoryPosition(var,4),$FP),
-					NULL);
+							newOperand(_reg,$T8+pos-1),
+							newRefeOperand(getMemoryPosition(var,4),$FP),
+							NULL);
 					op->regNum=Code->dest->regNum;
 				}
 				else{
 					Code=newCode(_sw,
-					newRefeOperand(getMemoryPosition(var,4),$FP),
-					newOperand(_reg,$V0),
-					NULL);
+							newRefeOperand(getMemoryPosition(var,4),$FP),
+							newOperand(_reg,$V0),
+							NULL);
 					op->regNum=Code->src1->regNum;
 				}
 			}
 			break;
 		case CONSTANT:
-			op->type=_immi;
-			op->val=var->val;
+			if(var->val==0){
+				op->type=_reg;
+				op->regNum=$ZERO;
+			}
+			else{
+				if(pos>2){
+					Code=newCode(_li,
+							newOperand(_reg,$T8+pos-3),
+							newOperand(_immi,var->val),
+							NULL);
+					op->regNum=Code->dest->regNum;
+				}
+				else{
+					op->type=_immi;
+					op->val=var->val;
+				}
+			}
 			break;
 		case FUNCTION:
 			op->type=_func;
@@ -121,9 +138,66 @@ code generateOperand(operand op,IRVar *var,int pos){
 	return Code;
 }
 
+code callStack(IRStmtList *head,code Code){
+	code retCode=Code;
+	code varStack=NULL;
+	bitVector *temp=NULL;
+	common(varCount,&temp,head->in);
+	common(varCount,&temp,head->out);
+	for(int i=0;i<varCount;i++){
+		if(GETBIT(temp,i)&&
+				nodes[i]->crossCall==1){
+			varStack=catCode(
+					newCode(_sw,
+						newRefeOperand(getAddress(4),$FP),
+						newOperand(_reg,nodes[i]->desc->regNum),
+						NULL),
+					varStack);
+			retCode=catCode(
+					retCode,
+					newCode(_lw,
+						newOperand(_reg,nodes[i]->desc->regNum),
+						newRefeOperand(getAddress(4),$FP),
+						NULL));
+		}
+	}
+	free(temp);
+	IRStmtList *p=head->prev;
+	int argCount=0;
+	while(p->stmt->type==_ARG){
+		if(argCount<4){
+			Code=NEWCODE;
+			Code->instr=_move;
+			Code->src1=NEWOPERAND;
+			Code->dest=newOperand(_reg,$A0+argCount);
+			varStack=catCode(generateOperand(Code->src1,p->stmt->arg1,1),varStack);
+			varStack=catCode(Code,varStack);
+		}
+		else{
+			Code=NEWCODE;
+			Code->instr=_move;
+			Code->src1=NEWOPERAND;
+			Code->dest=newRefeOperand(getAddress(4),$FP);
+			varStack=catCode(generateOperand(Code->src1,p->stmt->arg1,1),varStack);
+			varStack=catCode(Code,varStack);
+		}
+		argCount++;
+		p=p->prev;
+	}
+	varStack=catCode(
+			varStack,
+			newCode(_move,
+				newRefeOperand(getAddress(4),$FP),
+				newOperand(_reg,$FP),
+				NULL));
+	retCode=catCode(varStack,retCode);
+	return retCode;
+}
+
 code generateCode(IRStmtList **head){
 	IRStmtList *list=*head;
 	code Code=NEWCODE;
+	Code->next=NULL;
 	code retCode=Code;
 	switch(list->stmt->type){
 		case _LABE: 
@@ -168,8 +242,8 @@ code generateCode(IRStmtList **head){
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
-			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,3),retCode);
+			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,4),retCode);
 			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
 			break;
 		case _DIVI: 
@@ -177,8 +251,8 @@ code generateCode(IRStmtList **head){
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
-			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,3),retCode);
+			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,4),retCode);
 			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
 			Code=NEWCODE;
 			Code->instr=_mflo;
@@ -207,46 +281,42 @@ code generateCode(IRStmtList **head){
 		case _DEC:
 			break;
 		case _ARG:
-			if(argCount<4){
-				Code->instr=_move;
-				Code->src1=NEWOPERAND;
-				Code->dest=newOperand(_reg,$A0+argCount);
-				retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
-			}
-			else{
-				Code->instr=_move;
-				Code->src1=NEWOPERAND;
-				Code->dest=newRefeOperand(getAddress(4),$FP);
-				retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
-			}
-			argCount++;
+			//Do nothing, deal with it in CALL
+			free(Code);
+			retCode=NULL;
 			break;
 		case _CALL: 
-			argCount=0;
 			Code->instr=_jal;
 			Code->src1=NEWOPERAND;
-			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			generateOperand(Code->src1,list->stmt->arg1,1);
 			Code=NEWCODE;
 			Code->instr=_move;
 			Code->src1=newOperand(_reg,$V0);
 			Code->dest=NEWOPERAND;
+			retCode=catCode(newCode(_addi,
+			newOperand(_reg,$FP),
+			newOperand(_reg,$FP),
+			NULL),retCode);
+			retCode=catCode(retCode,Code);
 			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
-			retCode=stackLiveVar(list,retCode);
+			Code=retCode;
+			retCode=callStack(list,retCode);
+			Code->src2=newOperand(_immi,getAddress(0));
 			break;
 		case _PARA: 
-			if(argCount<4){
+			if(loadCount<4){
 				Code->instr=_move;
-				Code->src1=NEWOPERAND;
-				Code->dest=newOperand(_reg,$A0+argCount);
-				retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+				Code->dest=NEWOPERAND;
+				Code->src1=newOperand(_reg,$A0+loadCount);
+				retCode=catCode(generateOperand(Code->dest,list->stmt->target,1),retCode);
 			}
 			else{
 				Code->instr=_move;
-				Code->src1=NEWOPERAND;
-				Code->dest=newRefeOperand(getAddress(4),$FP);
-				retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+				Code->dest=NEWOPERAND;
+				Code->src1=newRefeOperand(-4*(loadCount-3),$FP);
+				retCode=catCode(generateOperand(Code->dest,list->stmt->target,1),retCode);
 			}
-			argCount++;
+			loadCount++;
 			break;
 		case _READ:
 			break;
@@ -254,7 +324,7 @@ code generateCode(IRStmtList **head){
 			free(Code);
 			retCode=NULL;
 			break;
-	case _IFL:
+		case _IFL:
 			Code->instr=_bgt;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
@@ -263,7 +333,7 @@ code generateCode(IRStmtList **head){
 			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
 			generateOperand(Code->dest,list->stmt->target,0);
 			break;
-	case _IFLE:
+		case _IFLE:
 			Code->instr=_bge;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
@@ -272,7 +342,7 @@ code generateCode(IRStmtList **head){
 			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
 			generateOperand(Code->dest,list->stmt->target,0);
 			break;
-	case _IFS:
+		case _IFS:
 			Code->instr=_blt;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
@@ -281,7 +351,7 @@ code generateCode(IRStmtList **head){
 			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
 			generateOperand(Code->dest,list->stmt->target,0);
 			break;
-	case _IFSE:
+		case _IFSE:
 			Code->instr=_ble;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
@@ -290,7 +360,7 @@ code generateCode(IRStmtList **head){
 			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
 			generateOperand(Code->dest,list->stmt->target,0);
 			break;
-	case _IFE:
+		case _IFE:
 			Code->instr=_beq;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
@@ -299,7 +369,7 @@ code generateCode(IRStmtList **head){
 			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
 			generateOperand(Code->dest,list->stmt->target,0);
 			break;
-	case _IFNE:
+		case _IFNE:
 			Code->instr=_bne;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
@@ -324,6 +394,7 @@ funcSeg generateFunc(IRStmtList **head){
 		(*head)=(*head)->next;
 		func->instrHead=catCode(func->instrHead,generateCode(head));
 	}
+	(*head)=(*head)->next;
 	return func;
 }
 
@@ -332,14 +403,14 @@ machineCode generateProgram(IRStmtList *head){
 	varLocation=(varDesc)malloc(currentCount*sizeof(struct _varDesc));
 	list=&head;
 	/*while((*list)->stmt->type!=_FUNC||strcm((*list)->stmt->arg1->name,"main")){
-		(*list)=(*list)->next;
-	}*/
+	  (*list)=(*list)->next;
+	  }*/
 	//block b=devideBlock(*list);
 	machineCode MC=(machineCode)malloc(sizeof(struct _machineCode));
 	MC->data=standardDataSeg;
 	MC->func=NULL;
 	funcSeg current;
-	while((*list)->next!=NULL){
+	while((*list)!=NULL&&(*list)->next!=NULL){
 		if(MC->func==NULL){
 			MC->func=generateFunc(list);
 			current=MC->func;
@@ -444,6 +515,13 @@ char *printInstr(code Code){
 			free(src1);
 			free(dest);
 			break;
+		case _li:
+			src1=printOperand(Code->src1);
+			dest=printOperand(Code->dest);
+			sprintf(instr,"li %s, %s",dest,src1);
+			free(src1);
+			free(dest);
+			break;
 		case _lab:
 			src1=printOperand(Code->src1);
 			sprintf(instr,"%s:",src1);
@@ -452,6 +530,16 @@ char *printInstr(code Code){
 		case _j:
 			src1=printOperand(Code->src1);
 			sprintf(instr,"j %s",src1);
+			free(src1);
+			break;
+		case _jr:
+			src1=printOperand(Code->src1);
+			sprintf(instr,"jr %s",src1);
+			free(src1);
+			break;
+		case _jal:
+			src1=printOperand(Code->src1);
+			sprintf(instr,"jal %s",src1);
 			free(src1);
 			break;
 		case _beq:
@@ -543,6 +631,9 @@ void printMachineCode(machineCode MC){
 		code instr=func->instrHead;
 		while(instr!=NULL){
 			char *instrStr=printInstr(instr);
+			if(instr->instr!=_lab){
+				printf("  ");
+			}
 			printf("%s\n",instrStr);
 			free(instrStr);
 			instr=instr->next;
