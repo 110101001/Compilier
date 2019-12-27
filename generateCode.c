@@ -143,6 +143,7 @@ code generateOperand(operand op,IRVar *var,int pos){
 							newOperand(_reg,$T8+pos-3),
 							newOperand(_immi,var->val),
 							NULL);
+					op->type=_reg;
 					op->regNum=Code->dest->regNum;
 				}
 				else{
@@ -161,6 +162,7 @@ code generateOperand(operand op,IRVar *var,int pos){
 
 code callStack(IRStmtList *head,code Code){
 	code retCode=Code;
+	code recoverCode=NULL;
 	code varStack=NULL;
 	bitVector *temp=NULL;
 	common(varCount,&temp,head->in);
@@ -174,8 +176,8 @@ code callStack(IRStmtList *head,code Code){
 						newOperand(_reg,nodes[i]->desc->regNum),
 						NULL),
 					varStack);
-			retCode=catCode(
-					retCode,
+			recoverCode=catCode(
+					recoverCode,
 					newCode(_lw,
 						newOperand(_reg,nodes[i]->desc->regNum),
 						newRefeOperand(getAddress(0)-4,$FP),
@@ -191,16 +193,19 @@ code callStack(IRStmtList *head,code Code){
 			Code->instr=_move;
 			Code->src1=NEWOPERAND;
 			Code->dest=newOperand(_reg,$A0+argCount);
-			varStack=catCode(generateOperand(Code->src1,p->stmt->arg1,1),varStack);
 			varStack=catCode(Code,varStack);
+			varStack=catCode(generateOperand(Code->src1,p->stmt->arg1,1),varStack);
+			if(Code->src1->type==_immi){
+				Code->instr=_li;
+			}
 		}
 		else{
 			Code=NEWCODE;
 			Code->instr=_sw;
 			Code->src1=NEWOPERAND;
 			Code->dest=newRefeOperand(getAddress(4),$FP);
-			varStack=catCode(generateOperand(Code->src1,p->stmt->arg1,1),varStack);
 			varStack=catCode(Code,varStack);
+			varStack=catCode(generateOperand(Code->src1,p->stmt->arg1,3),varStack);
 		}
 		argCount++;
 		p=p->prev;
@@ -217,7 +222,19 @@ code callStack(IRStmtList *head,code Code){
 				newRefeOperand(getAddress(4),$FP),
 				newOperand(_reg,$FP),
 				NULL));
+	varStack=catCode(
+			varStack,
+			newCode(_addi,
+				newOperand(_reg,$SP),
+				newOperand(_reg,$SP),
+				newOperand(_immi,getAddress(0))));
 	retCode=catCode(varStack,retCode);
+	retCode=catCode(
+			retCode,
+			newCode(_sub,
+				newOperand(_reg,$SP),
+				newOperand(_reg,$SP),
+				newOperand(_immi,getAddress(0))));
 	retCode=catCode(
 			retCode,
 			newCode(_lw,
@@ -230,9 +247,42 @@ code callStack(IRStmtList *head,code Code){
 				newOperand(_reg,$RA),
 				newRefeOperand(getAddress(0)-8,$FP),
 				NULL));
+	retCode=catCode(retCode,recoverCode);
 	return retCode;
 }
 
+code funcStart(){
+	code Code;
+	code retCode;
+	//set fp
+	Code=newCode(_move,
+	newOperand(_reg,$FP),
+	newOperand(_reg,$SP),
+	NULL);
+	retCode=Code;
+	//save regs
+	bitVector *lreg=createBV(MAXLREG);
+	for(int i=0;i<varCount;i++){
+		if(nodes[i]->desc->regNum>=MAXSREG){
+			setBit(i,lreg);
+		}
+	}
+	for(int i=0;i<varCount;i++){
+		if(GETBIT(lreg,i)){
+			retCode=catCode(retCode,
+			newCode(_sw,
+				newOperand(_reg,$S0+i),
+				newRefeOperand(getAddress(4),$FP),
+				NULL)
+			);
+		}
+	}
+	return retCode;
+}
+
+code funcEnd(){
+
+}
 code generateCode(IRStmtList **head){
 	IRStmtList *list=*head;
 	code Code=NEWCODE;
@@ -332,15 +382,10 @@ code generateCode(IRStmtList **head){
 			Code->instr=_move;
 			Code->src1=newOperand(_reg,$V0);
 			Code->dest=NEWOPERAND;
-			retCode=catCode(newCode(_addi,
-			newOperand(_reg,$FP),
-			newOperand(_reg,$FP),
-			NULL),retCode);
 			retCode=catCode(retCode,Code);
 			Code=retCode;
 			retCode=callStack(list,retCode);
-			retCode=catCode(retCode,generateOperand(Code->next->next->dest,list->stmt->target,0));
-			Code->src2=newOperand(_immi,getAddress(0));
+			retCode=catCode(retCode,generateOperand(Code->next->dest,list->stmt->target,0));
 			break;
 		case _PARA: 
 			if(loadCount<4){
@@ -429,6 +474,7 @@ funcSeg generateFunc(IRStmtList **head){
 	func->funcName=(*head)->stmt->arg1->name;
 	funcActiveAnalyze(*head);
 	graphColoring(*head);
+	func->instrHead=funcStart();
 	while((*head)->next!=0&&(*head)->next->stmt->type!=_FUNC){
 		(*head)=(*head)->next;
 		func->instrHead=catCode(func->instrHead,generateCode(head));
