@@ -346,6 +346,13 @@ code generateCode(IRStmtList **head){
 			if(Code->src1->type==_immi){
 				Code->instr=_li;
 			}
+			if(Code->src1->type==_reg&&
+			Code->dest->type==_reg&&
+			Code->src1->regNum==Code->src1->regNum
+			){
+				free(Code);
+				retCode=NULL;
+			}
 			break;
 		case _ADD: 
 			if(list->stmt->arg2->type==CONSTANT){
