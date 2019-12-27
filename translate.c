@@ -165,7 +165,7 @@ IRStmtList *translateCall(IRVar *retVar,treeNode *node){
 	IRStmtList *FCSL=newStmtList(FCS);
 	IRStmtList *expList=translateArgs(CHILD3(node));
 	IRStmtList *ret=NULL;
-	if(strcm(CHILD1(node)->text,"read")==0){
+	/*if(strcm(CHILD1(node)->text,"read")==0){
 		IRStmt *readS=newStmt(_READ,retVar,NULL,NULL);
 		IRStmtList *readSL=newStmtList(readS);
 		return readSL;
@@ -190,7 +190,7 @@ IRStmtList *translateCall(IRVar *retVar,treeNode *node){
 		IRStmtList *writeSL=newStmtList(writeS);
 		ret=catStmtList(expList,writeSL);
 		return ret;
-	}
+	}*/
 	ret=catStmtList(expList,FCSL);
 	return ret;
 }

@@ -315,7 +315,19 @@ void printCode(FILE *f,IRStmtList *head){
 	while(p!=0){
 		printLine(f,p->stmt);
 		if(p->in!=NULL&&p->out!=NULL){
-			printf("in:%x , out:%x\n",*p->in,*p->out);
+			printf("In:");
+			for(int j=0;j<2;j++){
+			for(int i=0;i<8;i++){
+				printf("%d",(p->in[j]&(1<<i))!=0);
+			}
+			}
+			printf(" Out:");
+			for(int j=0;j<2;j++){
+			for(int i=0;i<8;i++){
+				printf("%d",(p->out[j]&(1<<i))!=0);
+			}
+			}
+			printf("\n");
 		}
 		p=p->next;
 	}

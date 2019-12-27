@@ -184,7 +184,10 @@ void funcActiveAnalyze(IRStmtList *head){
 					IRStmtList *lab=searchLabel(pi->stmt->target);
 					merge(varCount,&pi->out,lab->in);
 				}
-				if(pi->next!=NULL&&pi->next->stmt->type!=_FUNC){
+				if(pi->next!=NULL&&
+				pi->next->stmt->type!=_FUNC&&
+				pi->stmt->type!=_RETU
+				){
 					merge(varCount,&pi->out,pi->next->in);
 				}
 			}
@@ -295,8 +298,25 @@ void graphGeneration(IRStmtList *head){
 						bitVector t=p->out[j]&~graphMatrix[i][j];
 						for(int k=0;k<8;k++){
 							if(t&0x1!=0){
-								int m=k+j;
+								int m=k+j*8;
 								connectNode(i,m);
+							}
+							t=t>>1;
+						}
+					}
+				}
+			}
+		}
+		if(p->stmt->target!=NULL){
+			int def=findVar(funcVars,varCount,p->stmt->target);
+			if(def!=-1){
+				for(int j=0;j<(varCount-1)/8+1;j++){
+					if(graphMatrix[def][j]|p->out[j]!=graphMatrix[def][j]){
+						bitVector t=p->out[j]&~graphMatrix[def][j];
+						for(int k=0;k<8;k++){
+							if(t&0x1!=0){
+								int m=k+j*8;
+								connectNode(def,m);
 							}
 							t=t>>1;
 						}
@@ -306,7 +326,7 @@ void graphGeneration(IRStmtList *head){
 		}
 		if(p->stmt->type==_CALL){
 			bitVector *temp=NULL;
-			common(varCount,&temp,p->in);
+			merge(varCount,&temp,p->in);
 			common(varCount,&temp,p->out);
 			resetBit(findVar(funcVars,varCount,p->stmt->target),temp);
 			for(int i=0;i<varCount;i++){

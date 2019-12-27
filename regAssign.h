@@ -56,6 +56,7 @@ block devideBlock(IRStmtList *head);
 bitVector *createBV(int n);
 void setBit(int n,bitVector *a);
 void common(int len,bitVector **a,bitVector *b);
+void merge(int len,bitVector **a,bitVector *b);
 void funcActiveAnalyze(IRStmtList *head);
 void graphColoring(IRStmtList *head);
 int getAddress(int size);
