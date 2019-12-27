@@ -202,6 +202,7 @@ code callStack(IRStmtList *head,code Code){
 		getAddress(4*(totalArgCount-4));
 		addr=getAddress(0);
 	}
+	p=head->prev;
 	while(p->stmt->type==_ARG){
 		if(argCount<4){
 			Code=NEWCODE;
@@ -223,7 +224,7 @@ code callStack(IRStmtList *head,code Code){
 			varStack=catCode(generateOperand(Code->src1,p->stmt->arg1,3),varStack);
 		}
 		argCount++;
-		p=p->next;
+		p=p->prev;
 	}
 	
 	varStack=catCode(
