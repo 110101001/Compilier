@@ -265,7 +265,7 @@ void printLine(FILE *f,IRStmt *stmt){
 			sprintf(str,"RETURN %s",arg1);
 			break;
 		case _DEC:
-			sprintf(str,"DEC %s %s",target,arg1);
+			sprintf(str,"DEC %s %s",arg1,arg2);
 			break;
 		case _ARG:
 			sprintf(str,"ARG %s",arg1);

@@ -49,6 +49,8 @@ typedef struct _block* block;
 typedef unsigned char bitVector;
 
 int getReg(IRVar *var);
+int getOffset(IRVar *var);
+void alloc(IRVar *var,int size);
 void resetReg(IRVar *var);
 int getSymbolReg(IRVar *var);
 block devideBlock(IRStmtList *head);

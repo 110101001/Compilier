@@ -29,6 +29,16 @@ int getReg(IRVar *var){
 	}
 }
 
+int getOffset(IRVar *var){
+	int pos=findVar(funcVars,varCount,var);
+	return nodes[pos]->desc->address;
+}
+
+void alloc(IRVar *var,int size){
+	int pos=findVar(funcVars,varCount,var);
+	nodes[pos]->desc->address=getAddress(size);
+}
+
 void resetReg(IRVar *var){
 	int pos=findVar(Self,currentCount, var);
 	varLocation[pos].regNum=-1;

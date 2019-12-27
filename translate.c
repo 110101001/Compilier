@@ -565,7 +565,7 @@ IRStmtList *translateArrayDec(treeNode *node){
 	IRVar *a1=newVaribleIRVar(CHILD1(dec)->text);
 	IRVar *t1=newTempIRVar();
 	IRVar *c1=newSizeIRVar(size);
-	IRStmt *DecS=newStmt(_DEC,t1,c1,NULL);
+	IRStmt *DecS=newStmt(_DEC,NULL,t1,c1);
 	IRStmtList *DecL=newStmtList(DecS);
 	IRStmt *RefS=newStmt(_ADDR,a1,t1,NULL);
 	IRStmtList *RefL=newStmtList(RefS);

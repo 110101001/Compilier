@@ -66,6 +66,8 @@ struct _dataItem promptStr={
 };
 const dataItem standardDataSeg=&promptStr;
 
+char *printInstr(code Code);
+
 code getLast(code current){
 	while(current->next!=NULL){
 		current=current->next;
@@ -171,17 +173,18 @@ code callStack(IRStmtList *head,code Code){
 	common(varCount,&temp,head->out);
 	for(int i=0;i<varCount;i++){
 		if(GETBIT(temp,i)&&
-				nodes[i]->crossCall==1){
+				nodes[i]->crossCall==1&&
+				nodes[i]->desc->regNum>=MAXSREG){
 			varStack=catCode(
 					newCode(_sw,
 						newRefeOperand(getAddress(4),$FP),
-						newOperand(_reg,nodes[i]->desc->regNum),
+						newOperand(_reg,getReg(nodes[i]->var)),
 						NULL),
 					varStack);
 			recoverCode=catCode(
 					recoverCode,
 					newCode(_lw,
-						newOperand(_reg,nodes[i]->desc->regNum),
+						newOperand(_reg,getReg(nodes[i]->var)),
 						newRefeOperand(getAddress(0)-4,$FP),
 						NULL));
 		}
@@ -273,8 +276,8 @@ code funcStart(){
 		if(GETBIT(lreg,i)){
 			retCode=catCode(retCode,
 			newCode(_sw,
-				newOperand(_reg,$S0+i),
 				newRefeOperand(getAddress(4),$FP),
+				newOperand(_reg,$S0+i),
 				NULL)
 			);
 		}
@@ -298,8 +301,8 @@ code funcEnd(){
 		if(GETBIT(lreg,i)){
 			retCode=catCode(retCode,
 			newCode(_lw,
-				newRefeOperand(regAdr-4*regCount,$FP),
 				newOperand(_reg,$S0+i),
+				newRefeOperand(regAdr-4*regCount,$FP),
 				NULL)
 			);
 			regCount++;
@@ -388,11 +391,38 @@ code generateCode(IRStmtList **head){
 			Code->dest=NEWOPERAND;
 			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
 			break;
-		case _ADDR: 
+		case _ADDR:
+			Code->instr=_addi;
+			Code->src1=newOperand(_reg,$FP);
+			Code->src2=newOperand(_immi,getOffset(list->stmt->arg1));
+			Code->dest=NEWOPERAND;
+			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
 			break;
 		case _REFE: 
+			Code->instr=_lw;
+			Code->src1=NEWOPERAND;
+			Code->dest=NEWOPERAND;
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
+			{
+				int tempRegNum=Code->src1->regNum;
+				Code->src1->type=_refe;
+				Code->src1->baseRegNum=tempRegNum;
+				Code->src1->offset=0;
+			}
 			break;
 		case _WMEM:
+			Code->instr=_sw;
+			Code->src1=NEWOPERAND;
+			Code->dest=NEWOPERAND;
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg2,3),retCode);
+			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->arg1,0));
+			{
+				int tempRegNum=Code->dest->regNum;
+				Code->dest->type=_refe;
+				Code->dest->baseRegNum=tempRegNum;
+				Code->dest->offset=0;
+			}
 			break;
 		case _GOTO: 
 			Code->instr=_j;
@@ -409,6 +439,9 @@ code generateCode(IRStmtList **head){
 			retCode=catCode(retCode,Code);
 			break;
 		case _DEC:
+			alloc(list->stmt->arg1,list->stmt->arg2->val);
+			free(Code);
+			retCode=NULL;
 			break;
 		case _ARG:
 			//Do nothing, deal with it in CALL
@@ -444,7 +477,8 @@ code generateCode(IRStmtList **head){
 			loadCount++;
 			break;
 		case _READ:
-		
+			free(Code);
+			retCode=NULL;
 			break;
 		case _WRIT:
 			free(Code);
@@ -506,6 +540,9 @@ code generateCode(IRStmtList **head){
 			break;
 	}
 	*head=list;
+	//char *s=printInstr(retCode);
+	//printf("%s\n",s);
+	//free(s);
 	return retCode;
 }
 
@@ -574,6 +611,9 @@ char *printOperand(operand Operand){
 }
 
 char *printInstr(code Code){
+	if(Code==NULL){
+		return NULL;
+	}
 	char *instr=malloc(MAXINSTRLEN*sizeof(char));
 	char *src1,*src2,*dest;
 	switch(Code->instr){
@@ -760,11 +800,13 @@ void printMachineCode(FILE *f,machineCode MC){
 		code instr=func->instrHead;
 		while(instr!=NULL){
 			char *instrStr=printInstr(instr);
-			if(instr->instr!=_lab){
-				fprintf(f,"  ");
+			if(instrStr!=NULL){
+				if(instr->instr!=_lab){
+					fprintf(f,"  ");
+				}
+				fprintf(f,"%s\n",instrStr);
+				free(instrStr);
 			}
-			fprintf(f,"%s\n",instrStr);
-			free(instrStr);
 			instr=instr->next;
 		}
 		fprintf(f,"\n");
