@@ -84,6 +84,23 @@ code catCode(code first,code second){
 	return first;
 }
 
+code removeCode(code head,code removed){
+	code p=head;
+	if(head==removed){
+		head=removed->next;
+		free(removed);
+		return head;
+	}
+	while(p->next!=NULL&&p->next!=removed){
+		p=p->next;
+	}
+	if(p->next==removed){
+		p->next=removed->next;
+		free(removed);
+	}
+	return head;
+}
+
 operand newOperand(operandType type,int n){
 	operand op=NEWOPERAND;
 	op->type=type;
@@ -273,7 +290,7 @@ code funcStart(){
 			setBit(i,lreg);
 		}
 	}
-	for(int i=0;i<varCount;i++){
+	for(int i=0;i<MAXLREG;i++){
 		if(GETBIT(lreg,i)){
 			retCode=catCode(retCode,
 			newCode(_sw,
@@ -298,7 +315,7 @@ code funcEnd(){
 		}
 	}
 	int regCount=1;
-	for(int i=varCount-1;i>=0;i--){
+	for(int i=MAXLREG-1;i>=0;i--){
 		if(GETBIT(lreg,i)){
 			retCode=catCode(retCode,
 			newCode(_lw,
@@ -341,6 +358,7 @@ code generateCode(IRStmtList **head){
 			Code->instr=_move;
 			Code->src1=NEWOPERAND;
 			Code->dest=NEWOPERAND;
+			retCode==NULL;
 			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
 			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
 			if(Code->src1->type==_immi){
@@ -348,10 +366,9 @@ code generateCode(IRStmtList **head){
 			}
 			if(Code->src1->type==_reg&&
 			Code->dest->type==_reg&&
-			Code->src1->regNum==Code->src1->regNum
+			Code->src1->regNum==Code->dest->regNum
 			){
-				free(Code);
-				retCode=NULL;
+				retCode=removeCode(retCode,Code);
 			}
 			break;
 		case _ADD: 

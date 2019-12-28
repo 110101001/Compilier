@@ -393,6 +393,7 @@ void graphColoring(IRStmtList *head){
 		while(pushed==1&&varCount-top>MAXCOLOR){
 			pushed=0;
 			for(int i=0;i<varCount;i++){
+				if(nodes[i]->state==INGRAPH){
 				int neiborCount=0;
 				graphNeibor p=nodes[i]->neibor;
 				while(p!=NULL){
@@ -406,11 +407,12 @@ void graphColoring(IRStmtList *head){
 					nodes[i]->state=POPED;
 					pushed=1;
 				}
+				}
 			}
 		}
 		if(varCount-top>MAXCOLOR){
 			for(int i=0;i<varCount;i++){
-				if(nodes[i]->state==0){
+				if(nodes[i]->state==INGRAPH){
 					stack[top++]=i;
 					nodes[i]->state=OVERFLOWING;
 				}
