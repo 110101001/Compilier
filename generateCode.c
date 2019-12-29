@@ -390,7 +390,7 @@ code generateCode(IRStmtList **head){
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
 			Code->dest=NEWOPERAND;
-			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,1),retCode);
+			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,3),retCode);
 			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,2),retCode);
 			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
 			break;
@@ -407,10 +407,8 @@ code generateCode(IRStmtList **head){
 			Code->instr=_div;
 			Code->src1=NEWOPERAND;
 			Code->src2=NEWOPERAND;
-			Code->dest=NEWOPERAND;
 			retCode=catCode(generateOperand(Code->src1,list->stmt->arg1,3),retCode);
 			retCode=catCode(generateOperand(Code->src2,list->stmt->arg2,4),retCode);
-			retCode=catCode(retCode,generateOperand(Code->dest,list->stmt->target,0));
 			Code=NEWCODE;
 			Code->instr=_mflo;
 			Code->dest=NEWOPERAND;
@@ -579,6 +577,7 @@ funcSeg generateFunc(IRStmtList **head){
 	funcActiveAnalyze(*head);
 	graphColoring(*head);
 	fpOffSet=0;
+	loadCount=0;
 	func->instrHead=funcStart();
 	while((*head)->next!=0&&(*head)->next->stmt->type!=_FUNC){
 		(*head)=(*head)->next;
@@ -681,11 +680,9 @@ char *printInstr(code Code){
 		case _div:
 			src1=printOperand(Code->src1);
 			src2=printOperand(Code->src2);
-			dest=printOperand(Code->dest);
-			sprintf(instr,"div %s, %s, %s",dest,src1,src2);
+			sprintf(instr,"div %s, %s",src1,src2);
 			free(src1);
 			free(src2);
-			free(dest);
 			break;
 		case _move:
 			src1=printOperand(Code->src1);
